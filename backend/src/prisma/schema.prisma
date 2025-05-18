@@ -49,19 +49,43 @@ model RememberMeToken {
   createdAt DateTime @default(now())
 }
 
-model Product {
-  id              String            @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt       DateTime          @default(now())
+model Page {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
   metatitle       String?
   metadescription String?
-  slug            String?  @unique
+  slug            String? @unique
   title           String
   body            String
   publish         Boolean @default(false)
+}
+
+model Product {
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt       DateTime  @default(now())
+  metatitle       String?
+  metadescription String?
+  slug            String?   @unique
+  title           String
+  body            String
+  price           Int
+  stock           Int       @default(0)
+  category        Category  @relation(fields: [categoryId], references: [id])
+  publish         Boolean   @default(false)
   viewCount       Int       @default(0)
   author          User      @relation(fields: [authorId], references: [id])
   authorId        String    @db.ObjectId
+  imageUrl        String
   comments        Comment[]
+  categoryId      String    @db.ObjectId
+}
+
+model Category {
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String
+  slug        String    @unique
+  parentId    String?   @db.ObjectId
+  Product     Product[]
 }
 
 model Comment {
@@ -69,15 +93,13 @@ model Comment {
   createdAt DateTime  @default(now())
   comment   String
   publish   Boolean   @default(false)
-  product      Product      @relation(fields: [productId], references: [id])
-  productId    String    @db.ObjectId
+  product   Product   @relation(fields: [productId], references: [id])
+  productId String    @db.ObjectId
   author    User      @relation(fields: [authorId], references: [id])
   authorId  String    @db.ObjectId
-  parentId  String?   @db.ObjectId // This field will hold the ID of the parent comment, if any
   parent    Comment?  @relation("CommentToComment", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  parentId  String?   @db.ObjectId // This field will hold the ID of the parent comment, if any
   replies   Comment[] @relation("CommentToComment")
   likes     Int       @default(0)
   dislikes  Int       @default(0)
 }
-
-
