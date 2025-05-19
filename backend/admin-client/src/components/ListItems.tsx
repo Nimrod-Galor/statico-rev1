@@ -1,15 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
-import { useParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 import { getItems } from '../api/index.ts'
 
 import {BiTrash} from 'react-icons/bi';
 
 function ListItems() {
+    const [searchParams, setSearchParams] = useSearchParams();
     let { activeCategory= 'role' } = useParams()
 
+    const page = searchParams.get("page") || '1'
+
+
     const query = useQuery({
-        queryKey: ['list-items', activeCategory],
-        queryFn: () => getItems(activeCategory)
+        queryKey: ['list-items', {activeCategory, page}],
+        queryFn: () => getItems(activeCategory, page)
       })
 
     if(query.isLoading) {
@@ -20,6 +24,9 @@ function ListItems() {
         return <div className="text-center">Error: {query.error.message}</div>
     }
 
+    if(query.data.data.length === 0){
+        return <div className='text-center'>No items found.</div>
+    }
 
     return (
         <div>

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from "react-router";
-import { getCategories } from '../api/index.ts'
+import { getContentType } from '../api/index.ts'
 import { Link } from 'react-router-dom';
 
 function Sidebar() {
@@ -8,7 +8,7 @@ function Sidebar() {
   
   const query = useQuery({
     queryKey: ['sidebar-categories'],
-    queryFn: () => getCategories(),
+    queryFn: () => getContentType(),
   })
 
   if(query.isLoading) {
