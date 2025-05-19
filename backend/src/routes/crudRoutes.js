@@ -1,36 +1,30 @@
 import express from 'express';
-import { getProducts, createProduct, updateProduct, deleteProduct, getProductById } from '../controllers/crudController.js';
-import { dbInterface } from '../prisma/dbInterface.js';
+import { getItems, createItem, updateItem, deleteItem, getItemById, getConyectTypes, totalPages } from '../controllers/crudController.js';
 
 
 const router = express.Router();
 
 
 // Route to get all contentTypes
-router.get('/categories', async (req, res) => {
-    try {
-        const categories = Object.keys(dbInterface)
-        res.status(200).json({ status: "success", data: categories });
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ status: "error", message: "Error fetching categories" });
-    }
-});
+router.get('/contentType', getConyectTypes);
 
-// Route to get all products
-router.get('/:contentType', getProducts);
+// Count total item pages for a contentType
+router.get('/:contentType/totalPages', totalPages);
 
-// Route to get a product by ID
-router.get('/:contentType/:id', getProductById);
+// Route to get all Items
+router.get('/:contentType', getItems);
 
-// Route to create a new product
-router.post('/:contentType', createProduct);
+// Route to get a Item by ID
+router.get('/:contentType/:id', getItemById);
 
-// Route to update a product by ID
-router.put('/:contentType/:id', updateProduct);
+// Route to create a new Item
+router.post('/:contentType', createItem);
 
-// Route to delete a product by ID
-router.delete('/:contentType/:id', deleteProduct);
+// Route to update a Item by ID
+router.put('/:contentType/:id', updateItem);
+
+// Route to delete a Item by ID
+router.delete('/:contentType/:id', deleteItem);
 
 
 

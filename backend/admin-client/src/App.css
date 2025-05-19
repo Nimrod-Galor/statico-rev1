@@ -1,26 +1,2 @@
 @import "tailwindcss";
 
-.pagination .btn{
-    border: 1px solid #ddd;
-    padding: 8px 16px;
-}
-.pagination .btn:not(.btn-active){
-    cursor: pointer;
-}
-
-.pagination .btn.btn-active {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.pagination .btn:first-child {
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-}
-
-.pagination .btn:last-child {
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-}
-
-.pagination .btn:hover:not(.btn-active) {background-color: #ddd;}

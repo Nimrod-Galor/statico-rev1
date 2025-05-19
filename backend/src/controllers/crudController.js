@@ -8,17 +8,7 @@ function smartConvert(value) {
     return value;
 }
 
-// Logic to fetch all items from the database
-export const getProducts = async (req, res) => {
-    const { contentType } = req.params;
-    const { ...filters } = req.query;
-    console.log("Get products for contentType:", contentType, " with filters:", filters);
-
-    // Check if the content type is valid
-    if (!dbInterface[contentType]) {
-        return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
-    }
-
+function setFilters(contentType, filters){
     let where = {};
     const orderBy = []
     // Construct the where clause based on filters
@@ -35,6 +25,21 @@ export const getProducts = async (req, res) => {
             }
         }
     }
+    return { where, orderBy }
+}
+
+// Logic to fetch all items from the database
+export const getItems = async (req, res) => {
+    const { contentType } = req.params;
+    const { ...filters } = req.query;
+    console.log("Get products for contentType:", contentType, " with filters:", filters);
+
+    // Check if the content type is valid
+    if (!dbInterface[contentType]) {
+        return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
+    }
+
+    const { where, orderBy } = setFilters(contentType, filters);
 
     console.log("Where clause:", where, " Order by:", orderBy);
 
@@ -49,6 +54,11 @@ export const getProducts = async (req, res) => {
         //  Get  data
         let response = await readRows(contentType, query)
 
+        // destruct nested fields
+        if('destructur' in dbInterface[contentType]){
+            response = response.map(dbInterface[contentType].destructur)
+        }
+
         res.status(200).json({ status: "success", data: response });
     }catch(err){
         console.log(err)
@@ -58,7 +68,7 @@ export const getProducts = async (req, res) => {
 }
 
 // Logic to fetch an item by ID from the database
-export const getProductById = async (req, res) => {
+export const getItemById = async (req, res) => {
     const { contentType, id } = req.params;
 
     // Check if the content type is valid
@@ -83,7 +93,7 @@ export const getProductById = async (req, res) => {
 }
 
 // Logic to create a new item in the database
-export const createProduct = async (req, res) => {
+export const createItem = async (req, res) => {
     const { contentType } = req.params;
     const data = req.body;
 
@@ -104,7 +114,7 @@ export const createProduct = async (req, res) => {
 }
 
 // Logic to update an item by ID in the database
-export const updateProduct = async (req, res) => {
+export const updateItem = async (req, res) => {
     const { contentType, id } = req.params;
 
     // Check if the content type is valid
@@ -143,7 +153,7 @@ export const updateProduct = async (req, res) => {
 }
 
 // Logic to delete an item by ID from the database
-export const deleteProduct = async (req, res) => {
+export const deleteItem = async (req, res) => {
     const { contentType, id } = req.params;
 
     // Check if the content type is valid
@@ -179,3 +189,34 @@ export const deleteProduct = async (req, res) => {
     }   
 }
 
+export const getConyectTypes = async (req, res) => {
+    try {
+        const categories = Object.keys(dbInterface)
+        res.status(200).json({ status: "success", data: categories });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: "error", message: "Error fetching categories" });
+        return
+    }
+}
+
+export const totalPages = async (req, res) => {
+    const { contentType } = req.params;
+    const { ...filters } = req.query;
+
+    // Check if the content type is valid
+    if (!dbInterface[contentType]) {
+        return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
+    }
+
+    const { where } = setFilters(contentType, filters);
+
+    try {
+        const rowsCount = await countRows(contentType, where);
+        const totalPages = (10 % rowsCount) + 1
+        res.status(200).json({ status: "success", data: totalPages });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: "error", message: `Error fetching count for '${contentType}'` });
+    }
+}
