@@ -14,9 +14,10 @@ function EditPage() {
     const { activeCategory = 'role', operation = 'create', id } = useParams();
 
     const schema = schemas[activeCategory as keyof typeof schemas]
+    // get type from schema
     type FormFields = z.infer<typeof schema>;
 
-    // if operation 'edit' get item values
+    // if operation 'edit' get item values for the form default values
     const query = useQuery({
         queryKey: ['get-item', {activeCategory, operation, id}],
         queryFn: () => getItem(activeCategory, id),
@@ -24,7 +25,7 @@ function EditPage() {
         enabled: operation == 'edit'
     })
 
-    // get form default values
+    // set form default values
     const defaultValues = query.data || {}
 
     const onSubmit: SubmitHandler<FormFields> = async (data) => {

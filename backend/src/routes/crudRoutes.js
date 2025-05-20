@@ -1,17 +1,14 @@
 import express from 'express';
 import { getItems, createItem, updateItem, deleteItem, getItemById, getConyectTypes, getTotalPages } from '../controllers/crudController.js';
-
+import passport from 'passport';
 
 const router = express.Router();
 
 // Route to get all contentTypes
-router.get('/contentType', getConyectTypes);
+router.get('/contentType', passport.authenticate('jwt', { session: false }), getConyectTypes);
 
 // Count total item pages for a contentType
 router.get('/:contentType/totalPages', getTotalPages);
-
-// router.get('/:contentType/schema', getContentTypeSchema)
-
 
 // Route to get all Items
 router.get('/:contentType', getItems);
@@ -20,13 +17,12 @@ router.get('/:contentType', getItems);
 router.get('/:contentType/:id', getItemById);
 
 // Route to create a new Item
-router.post('/:contentType', createItem);
+router.post('/:contentType', passport.authenticate('jwt', { session: false }), createItem);
 
 // Route to update a Item by ID
-router.put('/:contentType/:id', updateItem);
+router.put('/:contentType/:id', passport.authenticate('jwt', { session: false }), updateItem);
 
 // Route to delete a Item by ID
-router.delete('/:contentType/:id', deleteItem);
-
+router.delete('/:contentType/:id', passport.authenticate('jwt', { session: false }), deleteItem);
 
 export default router;

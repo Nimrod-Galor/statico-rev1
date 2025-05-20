@@ -4,7 +4,9 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-// after change to schems run: npx prisma generate
+// after change to schems run: 
+// npx prisma generate
+// npx prisma db push
 // npx prisma format
 
 generator client {
@@ -27,18 +29,21 @@ model Role {
 model User {
   id                       String            @id @default(auto()) @map("_id") @db.ObjectId
   createdAt                DateTime          @default(now())
-  email                    String            @unique
-  password                 String
-  salt                     String
+  email                    String?           @unique
+  password                 String?
+  salt                     String?
   userName                 String?
   role                     Role              @relation(fields: [roleId], references: [id])
   roleId                   String            @db.ObjectId
   products                 Product[]
   comments                 Comment[]
+  refreshToken             String?
   token                    RememberMeToken[]
   emailVerified            Boolean           @default(false)
   verificationToken        String?
   verificationTokenExpires DateTime?
+  facebookId               String?           @unique
+  googleId                 String?           @unique
 }
 
 model RememberMeToken {
