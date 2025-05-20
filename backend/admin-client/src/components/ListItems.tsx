@@ -1,3 +1,4 @@
+import { schemas } from "../schemas"
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams, useSearchParams } from "react-router";
 import { deleteItem, getItems } from '../api/index.ts'
@@ -8,8 +9,12 @@ import toast from 'react-hot-toast';
 function ListItems() {
     const [searchParams, setSearchParams] = useSearchParams();
     const { activeCategory= 'role' } = useParams()
-
     const page = searchParams.get("page") || '1'
+
+    const schema = schemas[activeCategory as keyof typeof schemas]
+    // Get keys from the Zod object schema
+    const schemaKeys = schema && 'shape' in schema ? Object.keys(schema.shape) : [];
+    console.log("schema: ", schemaKeys)
 
     const handleDelete = async (id: string) => {
         if(window.confirm(`Delete ${activeCategory}`)){
@@ -32,10 +37,6 @@ function ListItems() {
         return <div className="text-center">Error: {query.error.message}</div>
     }
 
-    if(query.data.data.length === 0){
-        return <div className='text-center'>No items found.</div>
-    }
-
     return (
         <div>
                 <div className="bg-white p-4">
@@ -46,7 +47,7 @@ function ListItems() {
                         </caption>
                         <thead className='bg-blue-200'>
                             <tr>
-                                {Object.keys(query.data.data[0]).slice(1).map((header: any, index: number) => (
+                                {schemaKeys.map((header: any, index: number) => (
                                     <th key={header} className='text-left p-3'>{header}</th>
                                 ))}
                                 <th>
@@ -55,8 +56,7 @@ function ListItems() {
                             </tr>
                         </thead>
                         <tbody>
-                            
-                                {
+                                {query.data.data.length === 0 ? <tr><td colSpan={schemaKeys.length + 1}><div className='text-center'>No items found.</div></td></tr> :
                                     query.data.data.map((row: any, index: number) => (
                                         <tr key={row.id} className=' hover:bg-gray-100 not-odd:bg-gray-200'>
                                             {Object.entries(row).slice(1).map(([key, value]) => (
@@ -81,7 +81,7 @@ function ListItems() {
                         </tbody>
                         <tfoot>
                             <tr>
-                                <td colSpan={query.data.data.length + 2} className="p-5 text-right">
+                                <td colSpan={schemaKeys.length + 1} className="p-5 text-right">
                                     <Link to={`/admin/create/${activeCategory}`}  className="bg-green-600 text-white p-2 rounded cursor-pointer hover:bg-greeb-700">
                                         Create
                                     </Link>
