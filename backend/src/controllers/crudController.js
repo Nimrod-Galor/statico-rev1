@@ -79,7 +79,7 @@ export const getItemById = async (req, res) => {
     try{
         let response = await readRow(contentType, {
             where: {
-                id: parseInt(id)
+                id: id
             },
             select: dbInterface[contentType].select
         })
@@ -116,22 +116,23 @@ export const createItem = async (req, res) => {
 // Logic to update an item by ID in the database
 export const updateItem = async (req, res) => {
     const { contentType, id } = req.params;
+    const data = req.body;
 
+    
     // Check if the content type is valid
     if (!dbInterface[contentType]) {
         return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
     }
-
-    const data = req.body;
+    
     // Check if the ID is valid
-    if (!id || isNaN(id)) {
+    if (!id) {
         return res.status(400).json({ status: "error", message: `Invalid ID: ${id}` });
     }
-
+    
     // Check if the item exists
     try{
         const item = await findUnique(contentType, {
-            id: parseInt(id)
+            id: id
         });
     
         if (!item) {
@@ -140,7 +141,7 @@ export const updateItem = async (req, res) => {
 
         // Update the item
         const updatedItem = await updateRow(contentType, {
-            id: parseInt(id)
+            id: id
         }, data);
 
         res.status(200).json({ status: "success", message: `${contentType} updated`, data: updatedItem });
@@ -162,14 +163,14 @@ export const deleteItem = async (req, res) => {
     }
 
     // Check if the ID is valid
-    if (!id || isNaN(id)) {
+    if (!id) {
         return res.status(400).json({ status: "error", message: `Invalid ID: ${id}` });
     }
 
     // Check if the item exists
     try{
         const item = await findUnique(contentType, {
-            id: parseInt(id)
+            id: id
         });
     
         if (!item) {
@@ -178,7 +179,7 @@ export const deleteItem = async (req, res) => {
 
         // Delete the item
         await deleteRow(contentType, {
-            id: parseInt(id)
+            id: id
         });
     
         res.status(200).json({ status: "success", message: `${contentType} deleted` });
@@ -200,7 +201,7 @@ export const getConyectTypes = async (req, res) => {
     }
 }
 
-export const totalPages = async (req, res) => {
+export const getTotalPages = async (req, res) => {
     const { contentType } = req.params;
     const { ...filters } = req.query;
 

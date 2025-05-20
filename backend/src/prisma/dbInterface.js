@@ -22,12 +22,6 @@ export const dbInterface = {
                     comments: true
                 }
             },
-            role: {
-                select: {
-                    id: true,
-                    name: true
-                }
-            }
         },
         destructur: (user) => ({
             ...user,
@@ -36,7 +30,7 @@ export const dbInterface = {
             role: user.role.name,
             roleId: user.role.id,
             _count: undefined // optionally remove the original _count field
-        }),
+        })
     },
     page: {
         select: {
@@ -107,7 +101,7 @@ export const dbInterface = {
             dislikes: true,
             _count:{
                 select: {
-                    comments: true
+                    replies: true
                 }
             }
         },

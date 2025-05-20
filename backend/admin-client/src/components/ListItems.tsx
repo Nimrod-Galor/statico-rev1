@@ -1,15 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
-import { useParams, useSearchParams } from "react-router";
-import { getItems } from '../api/index.ts'
+import { Link, useParams, useSearchParams } from "react-router";
+import { deleteItem, getItems } from '../api/index.ts'
 
-import {BiTrash} from 'react-icons/bi';
+import {BiTrash, BiPencil} from 'react-icons/bi';
+import toast from 'react-hot-toast';
 
 function ListItems() {
     const [searchParams, setSearchParams] = useSearchParams();
-    let { activeCategory= 'role' } = useParams()
+    const { activeCategory= 'role' } = useParams()
 
     const page = searchParams.get("page") || '1'
 
+    const handleDelete = async (id: string) => {
+        if(window.confirm(`Delete ${activeCategory}`)){
+            await deleteItem(activeCategory, id)
+            toast.success(`${activeCategory} Deleted.`)
+            query.refetch({ throwOnError: false, cancelRefetch: false })
+        }
+    }
 
     const query = useQuery({
         queryKey: ['list-items', {activeCategory, page}],
@@ -41,7 +49,9 @@ function ListItems() {
                                 {Object.keys(query.data.data[0]).slice(1).map((header: any, index: number) => (
                                     <th key={header} className='text-left p-3'>{header}</th>
                                 ))}
-                                <th>&nbsp;</th>
+                                <th>
+                                    &nbsp;
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -54,16 +64,30 @@ function ListItems() {
                                                     {String(value)}
                                                 </td>
                                             ))}
-                                            <td colSpan={Object.keys(query.data.data[0]).length} className='p-3 border-b border-gray-200 '>
-                                                <button className='bg-red-600 text-white p-2 rounded hover:cursor-pointer hover:bg-red-700' >
-                                                    <BiTrash />
-                                                </button>
+                                            <td className='p-3 border-b border-gray-200'>
+                                                <div className='flex justify-end gap-2'>
+                                                    <button onClick={ () => handleDelete(row.id)}  className='bg-red-600 text-white p-2 rounded cursor-pointer hover:bg-red-700' >
+                                                        <BiTrash />
+                                                    </button>
+                                                    <Link to={`/admin/edit/${activeCategory}/${row.id}`} className='bg-blue-600 text-white p-2 rounded cursor-pointer hover:bg-blue-700'>
+                                                        <BiPencil />
+                                                    </Link>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
                                 }
                                 
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colSpan={query.data.data.length + 2} className="p-5 text-right">
+                                    <Link to={`/admin/create/${activeCategory}`}  className="bg-green-600 text-white p-2 rounded cursor-pointer hover:bg-greeb-700">
+                                        Create
+                                    </Link>
+                                </td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             
