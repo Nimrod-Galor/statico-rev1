@@ -8,7 +8,7 @@ import passport from 'passport';
 import './config/passport.js'; // initializes all strategies
 
 // Routes
-import authRoutes from './routes/auth.js';
+import authRoutes from './routes/authRoutes.js';
 import crudRoutes from './routes/crudRoutes.js';
 
 const app = express();

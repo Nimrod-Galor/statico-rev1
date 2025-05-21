@@ -42,8 +42,8 @@ model User {
   emailVerified            Boolean           @default(false)
   verificationToken        String?
   verificationTokenExpires DateTime?
-  facebookId               String?           @unique
-  googleId                 String?           @unique
+  facebookId               String?
+  googleId                 String?
 }
 
 model RememberMeToken {

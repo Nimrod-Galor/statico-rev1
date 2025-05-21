@@ -1,5 +1,5 @@
 import { findUnique, readRow, readRows, updateRow, createRow, deleteRow, deleteRows, countRows } from '../../db.js';
-import { dbInterface } from '../prisma/dbInterface.js';
+import { dbInterface } from '../models/dbInterface.js';
 
 function smartConvert(value) {
     // if(isJsonObject(value)) return JSON.parse(value);

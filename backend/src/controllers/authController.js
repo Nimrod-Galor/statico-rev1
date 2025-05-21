@@ -1,57 +1,72 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'
 
-import { readRow, createRow } from "../../db.js"
+import { createUser } from '../utils/index.js'
 
 /** Create User */
-export async function createUser(req, res, next){
-    let {email, userName, password, role} = {...req.body}
-    // req.sendVerificationMail = sendVerificationMail ? sendVerificationMail : true // send verification email by default
-    // req.userData.emailVerified = req.userData.emailverified ? req.userData.emailverified : false // email is NOT farified by default
-
+export async function createUserController(req, res, next){
     try{
-        if(role == undefined){
-            // no role selected, get default role
-            const defaultRole = await readRow('role', {
-                select: {id: true},
-                where: {default: true}
-            })
-            
-            role = defaultRole.id
-        }
-
-        // Hash passowrd
-        const salt = await bcrypt.genSalt(12); // generate unique salt
-        const hashed = await bcrypt.hash(password, salt);
-
-        // Create a verification token
-        // we need this variable down in the sendmail middleware.
-        // req.verificationToken = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1h' });
-
-        // Set token and expiration date
-        const verificationTokenExpires = new Date(Date.now() + 3600000) // 1 hour
-        const userData = {
-            email,
-            userName,
-            password : hashed,
-            salt : salt.toString('hex'),
-            role : {
-                connect: {id: role}
-            },
-            verificationToken : jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1h' }),
-            verificationTokenExpires : verificationTokenExpires,
-        }
-        
         // Create User
-        const newObject = await createRow('user', userData)
+        const response = await createUser(req.body)
 
-        res.status(201).json({ action: 'create-user', status: 'success', message: `user '${userData.userName}' was created.` })
-
-        // next()
+        res.status(response.statusCode).json(response)
     }catch(errorMsg){
-        // dont send varification Email
-        // req.sendVerificationMail = false
-        //  Send Error json
-        res.json( { action: 'create User', status: 'failed', message: errorMsg.message })
+        res.status(500).json( { status: 'failed', message: errorMsg.message })
     }
 }
+
+// Local Login 
+export async function localLoginController(req, res){
+    passport.authenticate('local', { session: false }), 
+    createJwtToken
+}
+
+// Logout
+export async function logoutController (req, res){
+  const token = req.cookies.refreshToken;
+  if (!token) return res.sendStatus(204);
+
+  try {
+    const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET);
+    await updateRow('user', // contentType
+      { id: decoded.id }, // where
+      { refreshToken: null } // data
+    );
+  } catch {}
+
+  res.clearCookie('refreshToken');
+  res.sendStatus(204);
+}
+
+// refresh JWT token
+export async function refreshJwtController(req, res){
+    const token = req.cookies.refreshToken;
+    if (!token) return res.sendStatus(401);
+
+    try {
+        const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET);
+        const user = await findUnique('user', { id: decoded.id });
+
+        if (!user || user.refreshToken !== token) return res.sendStatus(403);
+
+        // Generate new access + refresh tokens
+        const { accessToken, refreshToken: newRefresh } = generateTokens(user);
+
+        await updateRow('user', // contentType
+            { id: user.id }, // where
+            { refreshToken: newRefresh } // data
+        );
+
+        res.cookie('refreshToken', newRefresh, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+
+        res.json({ status: 'success', accessToken });
+    } catch (err) {
+        return res.sendStatus(403);
+    }
+}
+
