@@ -1,7 +1,8 @@
 import express from 'express';
 import passport from 'passport';
 
-import { createUserController, localLoginController, logoutController, refreshJwtController } from '../controllers/authController.js'
+
+import { createUserController, logoutController, refreshJwtTokenController, loginController } from '../controllers/authController.js'
 
 const router = express.Router();
 
@@ -9,26 +10,26 @@ const router = express.Router();
 router.post('/signup', createUserController)
 
 // Local login
-router.post('/login', localLoginController);
+router.post('/login', passport.authenticate('local', { session: false }), loginController);
 
 // Logout
-router.post('/logout', logoutController);
+router.get('/logout', logoutController);
 
 // Refresh jwt Token
-router.post('/refresh-jwt-token', refreshJwtController);
+router.get('/refresh-token', refreshJwtTokenController);
 
 // Facebook auth
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 router.get('/facebook/callback',
     passport.authenticate('facebook', { failureRedirect: '/' }),
-    refreshJwtController
+    loginController
 );
 
 // Google auth
 router.get('/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
 router.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/' }),
-    refreshJwtController
+    loginController
 );
 
 export default router;

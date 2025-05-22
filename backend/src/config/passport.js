@@ -13,34 +13,25 @@ passport.use(new LocalStrategy({
         usernameField: 'email',
         passwordField: 'password'
     }, async (email, password, done) => {
+
         try {
-            const user = await findUnique('user', { email });
-            if (!user) return done(null, false, { message: 'Invalid email or password' });
+            const user = await findUnique('user', { email }, { id: true, userName: true, role: true, salt: true, password: true})
+            
+            if (!user) return done(null, false, { message: 'Invalid email or password' })
 
             // Use stored salt to hash the incoming password
-            const hashedInput = await bcrypt.hash(password, user.salt);
+            const hashedInput = await bcrypt.hash(password, user.salt)
 
             if (hashedInput !== user.password){
-                return done(null, false, { message: 'Invalid email or password' });
+                return done(null, false, { message: 'Invalid email or password' })
             }
 
-            // const newPassword = crypto.pbkdf2Sync(password, Buffer.from(user.salt, 'hex'), 100000, 64, 'sha512')
-            // const oldPassword = Buffer.from(user.password, 'hex')
-            // if (!crypto.timingSafeEqual(oldPassword, newPassword)) {
-            //     return done(null, false, { message: 'Invalid email or password' })
-            // }
-
-            return done(null, user);
-
-            // if (!user || !(await bcrypt.compare(password, user.password))) {
-            //     return done(null, false, { message: 'Invalid credentials' });
-            // }
-            // return done(null, user);
+            return done(null, user)
         } catch (err) {
-            return done(err);
+            return done(err)
         }
     }
-));
+))
 
 // JWT Strategy
 passport.use(new JwtStrategy({
@@ -48,13 +39,13 @@ passport.use(new JwtStrategy({
         secretOrKey: JWT_SECRET,
     }, async (payload, done) => {
         try {
-            const user = await User.findById(payload.id);
-            return done(null, user || false);
+            const user = await findUnique('user', { id:payload.id }, {id: true })
+            return done(null, user || false)
         } catch (err) {
-            return done(err, false);
+            return done(err, false)
         }
     }
-));
+))
 
 // Facebook Strategy
 passport.use(new FacebookStrategy({
@@ -77,7 +68,7 @@ passport.use(new FacebookStrategy({
             done(err, false);
         }
     }
-));
+))
 
 // Google Strategy
 passport.use(new GoogleStrategy({
@@ -99,4 +90,4 @@ passport.use(new GoogleStrategy({
             done(err, false);
         }
     }
-));
+))

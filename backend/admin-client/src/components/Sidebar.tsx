@@ -12,10 +12,10 @@ function Sidebar() {
   })
 
   if(query.isLoading) {
-    return <div className="w-sm h-screen bg-gray-200 p-4">Loading...</div>
+    return <div className="w-sm min-h-fit bg-gray-200 p-4">Loading...</div>
   }
   if(query.isError) {
-    return <div className="w-sm h-screen bg-gray-200 p-4">Error: {query.error.message}</div>
+    return <div className="w-sm min-h-full bg-gray-200 p-4">Error: {query.error.message}</div>
   }
 
   if( activeCategory === undefined) {
@@ -24,7 +24,7 @@ function Sidebar() {
   }
 
   return (
-    <div className="w-sm h-[calc(100vh-50px)] overflow-auto p-0 bg-gray-200 shadow-md rounded-md">
+    <div className="w-sm min-h-full overflow-auto p-0 bg-gray-200 shadow-md rounded-md">
       <ul className="space-y-2">
         {query.data.data.map((category: string, index: number) => (
           <Link to={`/admin/${category}`} key={category} className="text-blue-600 hover:underline">

@@ -5,7 +5,7 @@ import Pagination from "../components/Pagination";
 
 function Dashboard() {
   return (
-    <div className="flex">
+    <div className="flex flex-1">
         <Sidebar />
         <div className="flex-1 p-4">
             <ListItems />

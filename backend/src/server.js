@@ -1,6 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
-import cros from 'cors';
+import cors from 'cors';
+import cookieParser from 'cookie-parser'
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -12,6 +13,7 @@ import authRoutes from './routes/authRoutes.js';
 import crudRoutes from './routes/crudRoutes.js';
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 
@@ -19,16 +21,26 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Middleware
+app.use(cookieParser())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // init Passport
 app.use(passport.initialize());
 
 app.use(morgan('dev'));
-app.use(cros())
+
+
+const corsOptions ={
+    origin: 'http://localhost:5173',  // react app
+    credentials:true,            //access-control-allow-credentials:true
+    // optionSuccessStatus:200
+}
+app.options('/', cors(corsOptions)) // include before other routes
+app.use(cors(corsOptions))
+
 
 // Auth Routes
-app.use('/auth', authRoutes);
+app.use('/api/v1/auth/', authRoutes);
 
 // API Routes
 app.use('/api/v1/', crudRoutes);
