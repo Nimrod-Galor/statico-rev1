@@ -14,6 +14,7 @@ export const schemas = {
       role: z.string(),
       roleId: z.string(),
       emailVerified: z.boolean(),
+      comments: z.string().readonly()
     }),
 
     page: z.object({

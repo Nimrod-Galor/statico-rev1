@@ -7,7 +7,7 @@ import {BiTrash, BiPencil} from 'react-icons/bi';
 import toast from 'react-hot-toast';
 
 function ListItems() {
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const { activeCategory= 'role' } = useParams()
     const page = searchParams.get("page") || '1'
 
@@ -46,7 +46,7 @@ function ListItems() {
                 </caption>
                 <thead className='bg-blue-200'>
                     <tr>
-                        {schemaKeys.map((header: any, index: number) => (
+                        {schemaKeys.map((header: any) => (
                             <th key={header} className='text-left p-3'>{header}</th>
                         ))}
                         <th>&nbsp;</th>
@@ -54,7 +54,7 @@ function ListItems() {
                 </thead>
                 <tbody>
                         {query.data.data.length === 0 ? <tr><td colSpan={schemaKeys.length + 1}><div className='text-center'>No items found.</div></td></tr> :
-                            query.data.data.map((row: any, index: number) => (
+                            query.data.data.map((row: any) => (
                                 <tr key={row.id} className=' hover:bg-gray-100 not-odd:bg-gray-200'>
                                     {Object.entries(row).slice(1).map(([key, value]) => (
                                         <td key={row.id + String(key)} className="p-3 border-b border-gray-200 ">  

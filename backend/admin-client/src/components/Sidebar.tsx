@@ -26,7 +26,7 @@ function Sidebar() {
   return (
     <div className="w-sm min-h-full overflow-auto p-0 bg-gray-200 shadow-md rounded-md">
       <ul className="space-y-2">
-        {query.data.data.map((category: string, index: number) => (
+        {query.data.data.map((category: string) => (
           <Link to={`/admin/${category}`} key={category} className="text-blue-600 hover:underline">
             <li className="width-full px-5 py-2 my-0 hover:bg-gray-50 cursor-pointer" style={{backgroundColor: activeCategory === category ?  'white' : ''}} >
                 {category}

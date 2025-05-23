@@ -48,9 +48,9 @@ app.use('/api/v1/', crudRoutes);
 // Serve Admin React frontend
 app.use('/admin', express.static(path.join(__dirname, '../../backend/admin-client/dist')));
 
-// app.get('/admin/', (req, res) => {
-//   res.sendFile(path.join(__dirname, '../../backend/admin-client/dist', 'index.html'));
-// });
+app.get('/admin/*splat', (req, res) => {
+  res.sendFile(path.join(__dirname, '../../backend/admin-client/dist', 'index.html'));
+});
 
 
 // Serve React frontend

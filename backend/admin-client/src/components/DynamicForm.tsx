@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form';
-import type { SubmitHandler } from 'react-hook-form';
-import { z, ZodType, ZodObject } from 'zod';
+import type { FieldErrors, SubmitHandler } from 'react-hook-form';
+import { z, ZodObject } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 
@@ -15,7 +15,7 @@ interface DynamicFormProps<T> {
 }
 
 function DynamicForm<T extends {}>({ schema, defaultValues, operation, onSubmit }: DynamicFormProps<T>) {
-    type FormFields = z.infer<typeof schema>;
+    // type FormFields = z.infer<typeof schema>;
 
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<T>({
     resolver: zodResolver(schema),
@@ -75,7 +75,7 @@ function DynamicForm<T extends {}>({ schema, defaultValues, operation, onSubmit 
                     className="w-full p-2 border rounded-2xl focus:outline-none"
                   />
                 )}
-                {errors[field as keyof T] && (
+                {errors[field as keyof FieldErrors<T>] && (
                   <p className="text-red-500 text-sm mt-1">
                     {errors[field as keyof T]?.message as string}
                   </p>
