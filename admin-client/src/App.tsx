@@ -16,7 +16,7 @@ function App() {
         <Route path="/admin/login" element={<LoginPage />} />
         <Route element={<PrivateRoute />}>
           <Route path="/admin/:activeCategory?" element={<Dashboard />} />
-          <Route path="/admin/:operation/:activeCategory/:id?" element={<EditPage />} />
+          <Route path="/admin/:operationType/:contentType/:contentId?" element={<EditPage />} />
         </Route>
       </Routes>
 

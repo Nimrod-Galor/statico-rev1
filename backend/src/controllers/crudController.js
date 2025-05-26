@@ -83,6 +83,11 @@ export const getItemById = async (req, res) => {
             },
             select: dbInterface[contentType].select
         })
+
+        // destruct nested fields
+        if('destructur' in dbInterface[contentType]){
+            response = dbInterface[contentType].destructur(response)
+        }
         
         res.status(200).json({ status: "success", data: response });
     }catch(err){
