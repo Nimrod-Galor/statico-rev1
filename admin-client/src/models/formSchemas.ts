@@ -30,7 +30,7 @@ export const formSchemas: Record<string, FormSchema> = {
             {name: 'password', type: 'password', label: 'Password', displayInList: false, displayInForm: true},
             {name: 'rePassword', type: 'password', label: 'Re Password', displayInList: false, displayInForm: true},
             {name: 'role', type: 'select', label: 'Role', fetchFrom: 'role', displayInList: true, displayInForm: true},
-            {name: 'emailVerified', type: 'check', label: 'Email Verified', displayInList: true, displayInForm: true},
+            {name: 'emailVerified', type: 'check', label: 'Email Verified', displayInList: true, displayInForm: false},
             {name: 'comments', type: 'text', label: 'Comments', displayInList: true, displayInForm: false}
         ]
     },

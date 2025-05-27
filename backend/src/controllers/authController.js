@@ -8,7 +8,7 @@ const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET
 const JWT_SECRET = process.env.JWT_SECRET
 
 /** Create User */
-export async function createUserController(req, res, next){
+export async function createUserController(req, res){
     try{
         const userData = {
             userName: req.parsedData.userName,

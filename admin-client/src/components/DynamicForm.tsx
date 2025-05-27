@@ -9,6 +9,7 @@ import type { UseQueryResult } from '@tanstack/react-query'
 import type { FieldErrors, SubmitHandler } from 'react-hook-form'
 import type { DefaultValues } from 'react-hook-form'; 
 import type {FormField, FormSchema} from '../models/formSchemas'
+import PasswordInput from './PasswordInput'
 
 type DynamicFormProps<T> = {
   formSchema: FormSchema;
@@ -62,22 +63,37 @@ function DynamicForm<T extends Record<string, any> = Record<string, any>>({ form
   const renderField = (field: FormField) => {
     switch (field.type) {
       case 'textarea':
-        return <textarea {...register(field.name as any)} className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"  />;
+        return(<>
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+          <textarea {...register(field.name as any)} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"  />
+        </>)
       case 'select':
         const options = field.options || getSelectOptions(field.name);
-        return (
-          <select {...register(field.name as any)} id={field.name} className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+        return(<>
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+          <select {...register(field.name as any)} id={field.name} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             {options.map((opt) => (
               <option key={opt.id} value={opt.name}>
                 {opt.name}
               </option>
             ))}
           </select>
-        );
-        case 'check':
-          return <input type="checkbox" id={field.name} {...register(field.name as any)} className="float-left mt-1 me-3 inline w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800 focus:outline-2 focus:outline-indigo-600 sm:text-sm/6" />
+        </>)
+      case 'check':
+        return(<div className="flex items-center mb-4">
+          <input type="checkbox" id={field.name} {...register(field.name as any)} className="float-left ms-2 text-sm font-medium text-gray-900 dark:text-gray-300" />
+          <label className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{field.label}</label>
+        </div>)
+      case 'password':
+        return(<>
+            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+            <PasswordInput {...register(field.name as any)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+          </>)
       default:
-        return <input type={field.type} {...register(field.name as any)} className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />;
+        return(<>
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+          <input type={field.type} {...register(field.name as any)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+        </>)
     }
   };
 
@@ -104,10 +120,8 @@ function DynamicForm<T extends Record<string, any> = Record<string, any>>({ form
       <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
         {formSchema.fields.filter(item => item.displayInForm).map((field) => (
         <div key={field.name} className='pt-2'>
-          <label className="block text-sm/6 font-medium text-gray-900">
-            {field.label}
+          
             {renderField(field)}
-          </label>
           {errors[field.name as keyof FieldErrors<T>] && (
             <div className="text-red-500 mb-3">
               {errors[field.name as keyof T]?.message as string}
