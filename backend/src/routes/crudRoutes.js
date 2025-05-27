@@ -1,5 +1,8 @@
-import express from 'express';
-import { getItems, createItem, updateItem, deleteItem, getItemById, getConyectTypes, getTotalPages } from '../controllers/crudController.js';
+import express from 'express'
+import { getItems, createItem, updateItem, deleteItem, getItemById, getConyectTypes, getTotalPages } from '../controllers/crudController.js'
+import { formValidation } from '../middlewares/formValidation.js'
+import {userSchema } from '../../../shared/schemas/user.schema.ts'
+import { createUser } from '../controllers/userController.js'
 import passport from 'passport';
 
 const router = express.Router();
@@ -15,6 +18,9 @@ router.get('/:contentType', getItems);
 
 // Route to get a Item by ID
 router.get('/:contentType/:id', getItemById);
+
+// Route to create a new User. this is a special case because of user validation logic
+router.post('/user', passport.authenticate('jwt', { session: false }), formValidation(userSchema), createUser);
 
 // Route to create a new Item
 router.post('/:contentType', passport.authenticate('jwt', { session: false }), createItem);

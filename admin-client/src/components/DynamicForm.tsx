@@ -1,27 +1,19 @@
-import { useForm } from 'react-hook-form';
-import type { FieldErrors, SubmitHandler } from 'react-hook-form';
-import { useQueries } from '@tanstack/react-query';
-import type { UseQueryResult } from '@tanstack/react-query';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form'
+import { useQueries } from '@tanstack/react-query'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import toast from 'react-hot-toast'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { getItems, updateItem, createItem } from '../api'
 
-import { getItem, getItems, updateItem, createItem } from '../api';
-
-
+import type { UseQueryResult } from '@tanstack/react-query'
+import type { FieldErrors, SubmitHandler } from 'react-hook-form'
 import type { DefaultValues } from 'react-hook-form'; 
-
 import type {FormField, FormSchema} from '../models/formSchemas'
-
-
-
 
 type DynamicFormProps<T> = {
   formSchema: FormSchema;
   validationSchema: any;
   defaultValues?: DefaultValues<T>;
-  // operationType:string | undefined;
-  // onSubmit: SubmitHandler<T>;
 }
 
 // function DynamicForm<T extends {}>({ schema, defaultValues, operationType, onSubmit }: DynamicFormProps<T>) {
@@ -37,11 +29,10 @@ function DynamicForm<T extends Record<string, any> = Record<string, any>>({ form
     // }
   });
 
-  let navigate = useNavigate();
-
+  let navigate = useNavigate()
 
   // Identify all dynamic select fields
-  const dynamicSelects = formSchema.fields.filter((f) => f.type === 'select' && f.fetchFrom);
+  const dynamicSelects = formSchema.fields.filter((f) => f.type === 'select' && f.fetchFrom)
 
   // Run queries for each select
   const queryResults = useQueries({
@@ -52,21 +43,20 @@ function DynamicForm<T extends Record<string, any> = Record<string, any>>({ form
   });
 
   // Wait for all select queries to finish loading
-  const isLoadingSelects = queryResults.some((result) => result.isLoading);
+  const isLoadingSelects = queryResults.some((result) => result.isLoading)
 
   if (isLoadingSelects) {
     return (
       <div className="flex justify-center items-center h-32">
         <span className="text-gray-500">Loading...</span>
       </div>
-    );
+    )
   }
 
   const getSelectOptions = (fieldName: string): { id: string; name: string }[] => {
-    const index = dynamicSelects.findIndex((f) => f.name === fieldName);
-    const result: UseQueryResult<any, any> = queryResults[index];
-    console.log("result:", result.data)
-    return result?.data.data || [];
+    const index = dynamicSelects.findIndex((f) => f.name === fieldName)
+    const result: UseQueryResult<any, any> = queryResults[index]
+    return result?.data.data || []
   };
 
   const renderField = (field: FormField) => {

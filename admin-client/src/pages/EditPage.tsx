@@ -1,13 +1,7 @@
-
-// import { schemas } from "../../../shared/schemas";
-import { z } from 'zod'
-import { useParams, useNavigate } from 'react-router-dom'
-// import DynamicForm from '../components/DynamicForm';
+import { useParams } from 'react-router-dom'
 import { useQuery } from "@tanstack/react-query";
-import { getItem, updateItem, createItem, getItems } from "../api";
+import { getItem } from "../api";
 
-
-import type { SubmitHandler } from "react-hook-form";
 import ContentFormSwitcher from '../components/ContentFormSwitcher';
 
 function EditPage() {
@@ -23,9 +17,7 @@ function EditPage() {
 
     // set form default values
     const defaultValues = query.data || {}
-
-    console.log('defaultValues: ', defaultValues)
-
+    
     // Query Loading
     if(query.isLoading){
         return(<div>Loading...</div>)

@@ -23,6 +23,7 @@ export const mongoIdValidation = z.string()
         message: "Invalid Id",
     })
 
-export const slugValidation = z.string().refine((val) => validator.isSlug(val), {
+export const slugValidation = z.string()
+    .refine((val) => validator.isSlug(val), {
         message: "Invalid slug format",
     })

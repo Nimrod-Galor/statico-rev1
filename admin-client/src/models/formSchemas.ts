@@ -4,7 +4,7 @@ export type FormField = {
     name: string;
     type: FieldType;
     label: string;
-    options?: { label: string; value: string }[]; // For static select
+    options?: { id: string; name: string }[]; // For static select
     fetchFrom?: string; // content type for select options data
     displayInList: boolean; // display item in List items page
     displayInForm: boolean; // display item in create/edit form page

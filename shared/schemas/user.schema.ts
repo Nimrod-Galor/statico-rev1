@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { mongoIdValidation, passwordValidation } from "./helper";
+import { mongoIdValidation, passwordValidation } from "./helper.ts";
 
 
 export const userSchema = z.object({
