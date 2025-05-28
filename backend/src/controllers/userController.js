@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'
 
-import { readRow, createRow } from '../../db.js';
+import { readRow, createRow, findUnique, updateRow } from '../../db.js';
 
 export const createUser = async (req, res) => {
     try{
@@ -69,3 +69,57 @@ export const createUser = async (req, res) => {
     }
 }
 
+export const updateUser = async (req, res) => {
+    const {userId} = req.params
+
+    // check if user exist
+    const user = await findUnique('user', {id: userId})
+    
+    if(!user){
+        res.status(400).json({status: 'faild', message: 'User not found'})
+    }
+
+    if(req.parsedData.email != user.email){
+        // email need update. update verified flag
+        req.parsedData.emailVerified = req.parsedData.emailVerified ? req.parsedData.emailVerified : false
+    }
+
+    if(req.parsedData.role != user.role){
+        // update role
+        // get role id
+        const role = await readRow('role', {
+            select: {id: true},
+            where: {name: req.parsedData.role}
+        })
+
+        if(!role){
+            // role not found
+            return res.status(400).json({success: 'failed', message: `role ${userData.role} does not exist.`})
+        }
+        
+        req.parsedData.role = {
+            connect: {id: role.id}
+        }
+    }
+
+    
+    if(req.parsedData.password == ''){
+        delete req.parsedData.password
+        delete req.parsedData.rePassword
+    }else{
+        // Hash passowrd
+        const saltRounds = 10
+        const salt = bcrypt.genSaltSync(saltRounds);
+        const hash = bcrypt.hashSync(userData.password, salt);
+
+        req.parsedData.password = hash
+        req.parsedData.salt = salt
+    }
+
+    //  Update data type
+    await updateRow('user', {id: userId}, req.parsedData)
+
+    // Send Success json
+    res.json({ status: 'success', message: `user '${user.userName}' was updated successfuly` })
+    
+}

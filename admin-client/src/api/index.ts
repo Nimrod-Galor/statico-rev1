@@ -1,7 +1,8 @@
 import axios from 'axios';
 // Define the DynamicForm component
 import type { DefaultValues } from 'react-hook-form';
-import type {LoginType} from '../types/index.ts'
+// import type {LoginType} from '../types/index.ts'
+import type {LoginInput } from '../../../shared/schemas/login.schema.ts';
 
 
 
@@ -74,7 +75,7 @@ export const deleteItem = async (contentType: string, id: string) => {
 }
 
 // Login
-export const login = async (data: LoginType) => {
+export const login = async (data: LoginInput) => {
     try{
         console.log("data: ", data)
         const response = await axiosPrivate.post(`${BASEURL}/auth/login`, data, {

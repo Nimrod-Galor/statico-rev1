@@ -187,10 +187,10 @@ export const deleteItem = async (req, res) => {
             id: id
         });
     
-        res.status(200).json({ status: "success", message: `${contentType} deleted` });
+        res.status(200).json({ status: "success", message: `${contentType} deleted` })
     }catch(err){
         console.log(err)
-        res.status(500).json({ status: "error", message: `Error deleting '${contentType}'` });
+        res.status(500).json({ status: "error", message: `Error deleting '${contentType}'` })
         return
     }   
 }
@@ -207,22 +207,26 @@ export const getConyectTypes = async (req, res) => {
 }
 
 export const getTotalPages = async (req, res) => {
-    const { contentType } = req.params;
-    const { ...filters } = req.query;
+    const { contentType } = req.params
+    const { ...filters } = req.query
 
     // Check if the content type is valid
     if (!dbInterface[contentType]) {
-        return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
+        return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` })
     }
 
-    const { where } = setFilters(contentType, filters);
+    const { where } = setFilters(contentType, filters)
 
     try {
-        const rowsCount = await countRows(contentType, where);
-        const totalPages = (10 % rowsCount) + 1
-        res.status(200).json({ status: "success", data: totalPages });
+        const rowsCount = await countRows(contentType, where)
+        console.log("Rows count for contentType:", contentType, "is", rowsCount)
+
+        // Calculate total pages based on rows count
+        const totalPages = Math.ceil(rowsCount / 10); // Assuming 10 items per page
+        
+        res.status(200).json({ status: "success", data: totalPages })
     } catch (err) {
-        console.log(err);
-        res.status(500).json({ status: "error", message: `Error fetching count for '${contentType}'` });
+        console.log(err)
+        res.status(500).json({ status: "error", message: `Error fetching count for '${contentType}'` })
     }
 }

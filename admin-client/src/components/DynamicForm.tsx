@@ -8,17 +8,17 @@ import { getItems, updateItem, createItem } from '../api'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { FieldErrors, SubmitHandler } from 'react-hook-form'
 import type { DefaultValues } from 'react-hook-form'; 
-import type {FormField, FormSchema} from '../models/formSchemas'
+import type { FormField } from '../models/formSchemas'
 import PasswordInput from './PasswordInput'
 
 type DynamicFormProps<T> = {
-  formSchema: FormSchema;
+  formfieldsSchema: FormField[];
   validationSchema: any;
   defaultValues?: DefaultValues<T>;
 }
 
 // function DynamicForm<T extends {}>({ schema, defaultValues, operationType, onSubmit }: DynamicFormProps<T>) {
-function DynamicForm<T extends Record<string, any> = Record<string, any>>({ formSchema, validationSchema, defaultValues }: DynamicFormProps<T>) {
+function DynamicForm<T extends Record<string, any> = Record<string, any>>({ formfieldsSchema, validationSchema, defaultValues }: DynamicFormProps<T>) {
   const { contentType = 'role', operationType = 'create', contentId = '' } = useParams();
 
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<any>({
@@ -29,11 +29,11 @@ function DynamicForm<T extends Record<string, any> = Record<string, any>>({ form
     //   return result.data
     // }
   });
-
+console.log('defaultValues: ', defaultValues)
   let navigate = useNavigate()
 
   // Identify all dynamic select fields
-  const dynamicSelects = formSchema.fields.filter((f) => f.type === 'select' && f.fetchFrom)
+  const dynamicSelects = formfieldsSchema.filter((f) => f.type === 'select' && f.fetchFrom)
 
   // Run queries for each select
   const queryResults = useQueries({
@@ -100,6 +100,7 @@ function DynamicForm<T extends Record<string, any> = Record<string, any>>({ form
   const onSubmit: SubmitHandler<Record<string, string>> = async (data) => {
     try{
         if(operationType == 'edit'){
+          console.log('data:', data)
             await updateItem(contentType, contentId, data)
             navigate(`/admin/${contentType}`)
             toast.success(`${contentType} Updated.`)
@@ -118,7 +119,7 @@ function DynamicForm<T extends Record<string, any> = Record<string, any>>({ form
       {errors.root && <div className="text-red-500 text-sm mt-1">{errors.root.message as string}</div>}
 
       <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
-        {formSchema.fields.filter(item => item.displayInForm).map((field) => (
+        {formfieldsSchema.map((field) => (
         <div key={field.name} className='pt-2'>
           
             {renderField(field)}

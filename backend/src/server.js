@@ -38,7 +38,6 @@ const corsOptions ={
 app.options('/', cors(corsOptions)) // include before other routes
 app.use(cors(corsOptions))
 
-
 // Auth Routes
 app.use('/api/v1/auth/', authRoutes);
 
@@ -46,15 +45,11 @@ app.use('/api/v1/auth/', authRoutes);
 app.use('/api/v1/', crudRoutes);
 
 // Serve Admin React frontend
-app.use('/admin', express.static(path.join(__dirname, '../../backend/admin-client/dist')));
+app.use('/admin/', express.static(path.join(__dirname, '../../admin-client/dist')));
 
 app.get('/admin/*splat', (req, res) => {
-  res.sendFile(path.join(__dirname, '../../backend/admin-client/dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '../../admin-client/dist', 'index.html'));
 });
-
-
-// Serve React frontend
-// app.use(express.static(path.join(__dirname, '../../backend/admin-client/dist')));
 
 
 

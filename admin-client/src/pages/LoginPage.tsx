@@ -2,17 +2,19 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import type { SubmitHandler } from "react-hook-form"
 import { Link } from "react-router-dom"
-import { z } from "zod"
+
 
 import { useAuth } from "../context/AuthProvider"
+import { loginSchema } from "../../../shared/schemas/login.schema.ts"
+import type { LoginInput } from "../../../shared/schemas/login.schema.ts"
 
-const schema = z.object({
-  email: z.string().email(),
-  password: z.string().min(3),
-  rememberMe: z.boolean()
-})
+// const loginSchema = z.object({
+//   email: z.string().email(),
+//   password: z.string().min(3),
+//   rememberMe: z.boolean()
+// })
 
-type FormFields = z.infer<typeof schema>
+// type FormFields = LoginSchemaType
 
 function LoginPage() {
     const auth = useAuth()
@@ -21,11 +23,11 @@ function LoginPage() {
         handleSubmit,
         setError,
         formState: { errors, isSubmitting },
-    } = useForm<FormFields>({
-        resolver: zodResolver(schema),
+    } = useForm<LoginInput>({
+        resolver: zodResolver(loginSchema),
     })
 
-    const onSubmit: SubmitHandler<FormFields> = async (data) => {
+    const onSubmit: SubmitHandler<LoginInput> = async (data) => {
         try {
             auth.handleLogin(data)
         } catch (error: any) {
@@ -43,9 +45,6 @@ function LoginPage() {
                         Sign in to your account
                     </h2>
                 </div>
-
-                
-                
 
                 <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
 
@@ -65,12 +64,9 @@ function LoginPage() {
                                     className="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
                             </div>
 
-                            {errors.email && (
-                                <div className="text-red-500 mb-3">{errors.email.message}</div>
-                            )}
+                            {errors.email && <div className="text-red-500 mb-3">{errors.email.message}</div>}
                         </div>
 
-                        
                         <div className="mb-5">
                             <label htmlFor="password" className="block text-sm/6 font-medium text-gray-900">
                                 Password
@@ -93,10 +89,10 @@ function LoginPage() {
                         <div className="flex items-center justify-between my-5">
                             <div className="flex items-start">
                                 <div className="flex items-center h-5">
-                                    <input {...register("rememberMe")} id="remember" aria-describedby="remember" type="checkbox" className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800" />
+                                    <input {...register("rememberMe")} id="rememberMe" aria-describedby="rememberMe" type="checkbox" className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800" />
                                 </div>
                                 <div className="ml-3 text-sm">
-                                    <label htmlFor="remember" className="text-gray-500 dark:text-gray-300">Remember me</label>
+                                    <label htmlFor="rememberMe" className="text-gray-500 dark:text-gray-300">Remember me</label>
                                 </div>
                             </div>
                             <Link to="/forgot-password" className="text-sm font-medium text-primary-600 text-blue-600 hover:underline dark:text-primary-500">
@@ -120,7 +116,7 @@ function LoginPage() {
                 </div>
             </div>
 
-    );
+    )
 }
 
 export default LoginPage
