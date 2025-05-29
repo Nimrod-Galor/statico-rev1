@@ -2,7 +2,7 @@ import { z } from "zod";
 import { mongoIdValidation } from './helper.ts'
 
 export const roleSchema = z.object({
-    id: mongoIdValidation,
+    // id: mongoIdValidation.optional(),
     name: z.string()
         .min(3, "Role must be at least 3 characters long")
         .optional(),

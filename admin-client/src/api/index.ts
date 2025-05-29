@@ -54,6 +54,7 @@ export const updateItem = async <T>(contentType: string, id: string, data: Defau
 
 // Create Item
 export const createItem = async <T>(contentType: string, data: DefaultValues<T>) => {
+    console.log('create item ', `${BASEURL}/${contentType}`)
     try{
         const response = await axiosPrivate.post(`${BASEURL}/${contentType}`, data)
         return response.data

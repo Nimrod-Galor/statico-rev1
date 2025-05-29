@@ -8,6 +8,7 @@ import DynamicForm from './DynamicForm'
 import type { DefaultValues } from 'react-hook-form';
 import type { FormField } from '../models/formSchemas.ts'
 
+
 type ContentFormSwitcherProps = {
     defaultValues?: DefaultValues<any>
 }
@@ -17,6 +18,7 @@ const ContentFormSwitcher: React.FC<ContentFormSwitcherProps> = ({defaultValues}
     // const formfieldsSchema = formSchemas[contentType].fields.filter(item => item.displayInForm)
     const formfieldsSchema: FormField[] = (formSchemas as FormSchemas)[contentType].fields.filter((item: FormField) => item.displayInForm);
     const validationSchema = operationType === 'edit' && contentType === 'user' ? schemaRegistry['userEdit'] : schemaRegistry[contentType as keyof typeof schemaRegistry]
+    
 
     if (!formfieldsSchema){
         return <div>Unknown content type</div>

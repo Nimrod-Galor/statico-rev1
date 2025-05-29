@@ -36,6 +36,7 @@ export const userSchema = z.object({
         path: ["rePassword"], // path of error
     })
 
+export type UserInput = z.infer<typeof userSchema>
 
 export const userEditSchema = z.object({
         id: mongoIdValidation
@@ -55,4 +56,4 @@ export const userEditSchema = z.object({
         path: ["rePassword"], // path of error
     })
 
-export type UserInput = z.infer<typeof userSchema>
+export type UserEditInput = z.infer<typeof userEditSchema>

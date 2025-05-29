@@ -1,34 +1,38 @@
 import { useForm } from 'react-hook-form'
+import { z } from 'zod'
 import { useQueries } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getItems, updateItem, createItem } from '../api'
+import PasswordInput from './PasswordInput'
 
 import type { UseQueryResult } from '@tanstack/react-query'
-import type { FieldErrors, SubmitHandler } from 'react-hook-form'
+import type { SubmitHandler } from 'react-hook-form'
 import type { DefaultValues } from 'react-hook-form'; 
 import type { FormField } from '../models/formSchemas'
-import PasswordInput from './PasswordInput'
+import type { FieldValues } from 'react-hook-form'
+
+
 
 type DynamicFormProps<T> = {
   formfieldsSchema: FormField[];
-  validationSchema: any;
+  validationSchema: any; 
+  // ZodType<any, any, any>;
   defaultValues?: DefaultValues<T>;
 }
 
 // function DynamicForm<T extends {}>({ schema, defaultValues, operationType, onSubmit }: DynamicFormProps<T>) {
-function DynamicForm<T extends Record<string, any> = Record<string, any>>({ formfieldsSchema, validationSchema, defaultValues }: DynamicFormProps<T>) {
+function DynamicForm<T>({ formfieldsSchema, validationSchema, defaultValues }: DynamicFormProps<T>) {
   const { contentType = 'role', operationType = 'create', contentId = '' } = useParams();
 
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<any>({
+  type zodSchemaType = z.infer<typeof validationSchema>
+
+  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<zodSchemaType>({
     resolver: zodResolver(validationSchema),
     defaultValues
-    // : async () => {
-    //   const result = await getItem(contentType, contentId)
-    //   return result.data
-    // }
   });
+
 console.log('defaultValues: ', defaultValues)
   let navigate = useNavigate()
 
@@ -97,15 +101,16 @@ console.log('defaultValues: ', defaultValues)
     }
   };
 
-  const onSubmit: SubmitHandler<Record<string, string>> = async (data) => {
+  const onSubmit: SubmitHandler<T> = async (data) => {
+    console.log('operationType: ', operationType)
     try{
         if(operationType == 'edit'){
           console.log('data:', data)
-            await updateItem(contentType, contentId, data)
+            await updateItem(contentType, contentId, data as DefaultValues<T>)
             navigate(`/admin/${contentType}`)
             toast.success(`${contentType} Updated.`)
         }else{
-            await createItem(contentType, data)
+            await createItem(contentType, data as DefaultValues<T>)
             navigate(`/admin/${contentType}`)
             toast.success(`${contentType} Created.`)
         }
@@ -118,29 +123,28 @@ console.log('defaultValues: ', defaultValues)
     <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
       {errors.root && <div className="text-red-500 text-sm mt-1">{errors.root.message as string}</div>}
 
-      <form className="space-y-2" onSubmit={handleSubmit(onSubmit)}>
+      <form className="space-y-2" onSubmit={handleSubmit(onSubmit)} noValidate>
         {formfieldsSchema.map((field) => (
-        <div key={field.name} className='pt-2'>
-          
+          <div key={field.name} className='pt-2'>
             {renderField(field)}
-          {errors[field.name as keyof FieldErrors<T>] && (
-            <div className="text-red-500 mb-3">
-              {errors[field.name as keyof T]?.message as string}
-            </div>
-          )}
-        </div>
-      ))}
+            {errors[field.name as keyof FieldValues] && (
+              <div className="text-red-500 mb-3">
+                {errors[field.name as keyof T]?.message as string}
+              </div>
+            )}
+          </div>
+        ))}
 
-      <div className='flex justify-evenly gap-2'>
-        <button type="submit" disabled={isSubmitting} className="w-full p-2 mt-4 rounded-2xl bg-blue-600 text-white hover:cursor-pointer">
-          {isSubmitting ? "Loading..." : operationType == 'edit' ? 'update' : 'create' }
-        </button>
-        <Link to="/admin" className="w-full text-center p-2 mt-4 rounded-2xl bg-yellow-600 text-white hover:cursor-pointer">
-          Cancel
-        </Link>
-      </div>
+        <div className='flex justify-evenly gap-2'>
+          <button type="submit" disabled={isSubmitting} className="w-full p-2 mt-4 rounded-2xl bg-blue-600 text-white hover:cursor-pointer">
+            {isSubmitting ? "Loading..." : operationType == 'edit' ? 'update' : 'create' }
+          </button>
+          <Link to="/admin" className="w-full text-center p-2 mt-4 rounded-2xl bg-yellow-600 text-white hover:cursor-pointer">
+            Cancel
+          </Link>
+        </div>
       </form>
-      </div>
+    </div>
   )
 }
 

@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'
 
-import { readRow, createRow, findUnique, updateRow } from '../../db.js';
+import { readRow, createRow, findUnique, updateRow, deleteRows, deleteRow } from '../../db.js';
 
 export const createUser = async (req, res) => {
     try{
@@ -120,6 +120,25 @@ export const updateUser = async (req, res) => {
     await updateRow('user', {id: userId}, req.parsedData)
 
     // Send Success json
-    res.json({ status: 'success', message: `user '${user.userName}' was updated successfuly` })
-    
+    res.json({ status: 'success', message: `user '${user.userName}' was updated successfuly` })  
+}
+
+export const deleteUser = async (req, res) => {
+    const {userId} = req.params
+    try{
+        // Delete all user Comments
+        await deleteRows('comment', { authorId: userId })
+
+        // Delete all user Posts
+        await deleteRows('post', { authorId: userId })
+
+        //  Delete user
+        const user = await deleteRow('user', { userId })
+
+        // Send Success json
+        res.json({ status: 'succes', message: `User "${user.userName}" was successfuly deleted` })
+    }catch(errorMsg){
+        // Send Error json
+        res.json( { status: 'failed', message: errorMsg.message })
+    }
 }
