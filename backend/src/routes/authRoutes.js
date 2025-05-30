@@ -14,7 +14,7 @@ const router = express.Router()
 router.post('/signup', formValidation(userSchema), createUserController)
 
 // Local login
-router.post('/login', passport.authenticate('local', { session: false }), loginController)
+router.post('/login', loginController)
 
 // Logout
 router.get('/logout', logoutController)

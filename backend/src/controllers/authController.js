@@ -1,3 +1,4 @@
+import passport from 'passport'
 import jwt from 'jsonwebtoken'
 import { updateRow, findUnique } from '../../db.js'
 import { createUser, generateToken, generateRefreshToken } from '../utils/index.js'
@@ -37,9 +38,15 @@ export async function createUserController(req, res){
 }
 
 // login
-export const loginController = async (req, res) => {
-    try {
-        const user = req.user
+export const loginController = (req, res, next) => {
+    passport.authenticate('local', { session: false }, async (err, user, info) => {
+        if (err){
+            return res.status(500).json({ message: 'Server error.' })
+        }
+
+        if (!user){
+            return res.status(401).json({ message: info.message })
+        }
 
         // Generate new refresh token
         const refreshToken = generateRefreshToken(user.id)
@@ -62,11 +69,10 @@ export const loginController = async (req, res) => {
         const { role, userName } = {...user, role: user.role.name}
 
         res.json({ status: 'success', role, userName, accessToken });
-    } catch (err) {
-        console.log(err)
-        return res.status(403).json({err});
-    }
+            
+    })(req, res, next)
 }
+
 
 // Logout
 export async function logoutController (req, res){

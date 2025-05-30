@@ -14,10 +14,17 @@ passport.use(new LocalStrategy({
         passwordField: 'password'
     }, async (email, password, done) => {
 
+        if (!email || !password) {
+            return done(null, false, { message: 'Email and password are required' });
+        }
+
         try {
             const user = await findUnique('user', { email }, { id: true, userName: true, role: true, salt: true, password: true})
-            
-            if (!user) return done(null, false, { message: 'Invalid email or password' })
+
+            if (!user){
+                console.log("User not found for email:", email);
+                return done(null, false, { message: 'Invalid email or password' });
+            }
 
             // Use stored salt to hash the incoming password
             const hashedInput = await bcrypt.hash(password, user.salt)
@@ -28,6 +35,7 @@ passport.use(new LocalStrategy({
 
             return done(null, user)
         } catch (err) {
+            console.error("Error in Local Strategy:", err);
             return done(err)
         }
     }

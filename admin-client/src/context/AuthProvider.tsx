@@ -89,16 +89,16 @@ export default function AuthProvider({ children }: AuthProviderProps) {
 
     const handleLogin = async (data:LoginInput) => {
         try {
-            const response = await login(data)
-            if (response) {
-                setUser(response.user);
-                setAuthToken(response.accessToken);
-    
-                navigate("/admin/");
-                return
-            }
-            }catch (err) {
-            console.error(err);
+          const response = await login(data)
+          
+          setUser(response.user)
+          setAuthToken(response.accessToken)
+
+          navigate("/admin/")
+          return Promise.resolve()
+        }catch (err) {
+          // Instead of throwing, return a rejected promise with the error message
+          return Promise.reject((err as { message?: string }).message || 'Login failed')
         }
     }
 

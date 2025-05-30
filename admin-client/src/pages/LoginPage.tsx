@@ -8,14 +8,6 @@ import { useAuth } from "../context/AuthProvider"
 import { loginSchema } from "../../../shared/schemas/login.schema.ts"
 import type { LoginInput } from "../../../shared/schemas/login.schema.ts"
 
-// const loginSchema = z.object({
-//   email: z.string().email(),
-//   password: z.string().min(3),
-//   rememberMe: z.boolean()
-// })
-
-// type FormFields = LoginSchemaType
-
 function LoginPage() {
     const auth = useAuth()
     const {
@@ -29,11 +21,10 @@ function LoginPage() {
 
     const onSubmit: SubmitHandler<LoginInput> = async (data) => {
         try {
-            auth.handleLogin(data)
+            await auth.handleLogin(data)
         } catch (error: any) {
-            console.log("err")
             setError("root", {
-                message: error.message || "Login Error",
+                message: error || "Login Error",
             })
         }
     }

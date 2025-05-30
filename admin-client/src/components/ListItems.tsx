@@ -51,13 +51,13 @@ function ListItems() {
 
     return (
         <div className="bg-white p-4">
-            <h1 className="text-center text-2xl font-bold mb-2">{activeCategory} content type</h1>
+            <h1 className="text-center text-2xl font-bold mb-2 capitalize">{activeCategory} content type</h1>
     
-            <table className='w-full border-2 border-gray-200'>
+            <table className='w-full border-1 border-blue-200'>
                 {query.data.data.length === 0 ? <tbody><tr><td colSpan={formSchemas[activeCategory].fields.filter(item => item.displayInList).length + 1} className="p-5 text-center"><div className=''>No items found.</div></td></tr></tbody>
                 :
                 <>
-                <thead className='bg-blue-200'>
+                <thead className='bg-blue-300'>
                     <tr>
                         {
                         formSchemas[activeCategory].fields.filter(item => item.displayInList).map(({name, label}) => (
@@ -92,7 +92,7 @@ function ListItems() {
                 </>
             }
 
-                <tfoot>
+                <tfoot className='bg-blue-300'>
                     <tr>
                         <td colSpan={formSchemas[activeCategory].fields.filter(item => item.displayInList).length + 1} className="p-5 text-right">
                             <Link to={`/admin/create/${activeCategory}`}  className="bg-green-600 text-white p-2 rounded cursor-pointer hover:bg-greeb-700">
