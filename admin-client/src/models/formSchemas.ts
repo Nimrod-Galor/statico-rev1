@@ -66,7 +66,7 @@ export const formSchemas: Record<string, FormSchema> = {
             {name: 'name', type: 'text', label: 'Name', displayInList: true, displayInForm: true},
             {name: 'description', type: 'text', label: 'Description', displayInList: true, displayInForm: true},
             {name: 'slug', type: 'text', label: 'Slug', displayInList: true, displayInForm: true},
-            {name: 'parentId', type: 'select', label: 'Parent Id', displayInList: true, displayInForm: true, fetchFrom: 'category', options: [{id: '', name: 'None'}]}
+            {name: 'parent', type: 'select', label: 'Parent Categoy', displayInList: true, displayInForm: true, fetchFrom: 'category', options: [{id: '', name: 'None'}]}
         ]
     },
     comment: {

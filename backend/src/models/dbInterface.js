@@ -68,10 +68,10 @@ export const dbInterface = {
                 }
             }
         },
-        destructur: (post) => ({
+        destructur: (product) => ({
             ...product,
-            author: post.author.userName,
-            comments: post._count.comments,
+            author: product.author.userName,
+            comments: product._count.comments,
             _count: undefined
         }),
     },
@@ -81,8 +81,12 @@ export const dbInterface = {
             name: true,
             description: true,
             slug: true,
-            parentId: true
-        }
+            parent: true
+        },
+        destructur: (category) => ({
+            ...category,
+            parent: category.parent ? category.parent.name : ''
+        }),
     },
     comment: {
         select: {
