@@ -1,7 +1,7 @@
 import {z} from 'zod'
 import validator from 'validator'
 
-import { slugValidation } from './helper'
+import { slugValidation } from './helper.ts'
 
 export const productSchema = z.object({
      metatitle: z.string()

@@ -72,7 +72,8 @@ console.log('defaultValues: ', defaultValues)
           <textarea {...register(field.name as any)} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"  />
         </>)
       case 'select':
-        const options = field.options || getSelectOptions(field.name);
+        // const options = field.options || getSelectOptions(field.name);
+        const options = field.options ? field.options.concat(getSelectOptions(field.name)) : getSelectOptions(field.name);
         return(<>
           <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
           <select {...register(field.name as any)} id={field.name} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
@@ -102,7 +103,25 @@ console.log('defaultValues: ', defaultValues)
   };
 
   const onSubmit: SubmitHandler<T> = async (data) => {
-    console.log('operationType: ', operationType)
+    // update select fields to match the expected format
+    dynamicSelects.forEach((field) => {
+      console.log('field.name: ', field.name)
+      console.log('data[field.name]: ', data[field.name as keyof T])
+      if(data[field.name as keyof T] === 'None' || data[field.name as keyof T] === '' || data[field.name as keyof T] === undefined){
+        //delete the field if it's empty
+        delete data[field.name as keyof T];
+      }else{
+        const selectedOption = data[field.name as keyof T] as string;
+        const option = getSelectOptions(field.name).find(opt => opt.name === selectedOption);
+        if (option) {
+          data[field.name as keyof T] = option.id as any; // update to use id
+        }
+      }
+
+      // if (field.type === 'select' && field.fetchFrom) {
+      // }
+    })
+
     try{
         if(operationType == 'edit'){
           console.log('data:', data)

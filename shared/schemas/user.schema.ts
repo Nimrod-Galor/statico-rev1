@@ -30,7 +30,7 @@ export const userSchema = z.object({
         //         }, {
         //         message: "Invalid role, does not exist in the database",
         //     }),
-        role: z.enum(['admin', 'author', 'contributor', 'editor', 'subscriber']),
+        role: z.enum(['admin', 'author', 'contributor', 'editor', 'subscriber']).or(mongoIdValidation),
     }).refine( data => data.password === data.rePassword, {
         message: "Passwords don't match",
         path: ["rePassword"], // path of error
@@ -50,7 +50,7 @@ export const userEditSchema = z.object({
                     // .refine(pass => )
         userName: z.string()
             .min(3, "Username must be at least 3 characters long"),  // Required username
-        role: z.enum(['admin', 'author', 'contributor', 'editor', 'subscriber']),
+        role: z.enum(['admin', 'author', 'contributor', 'editor', 'subscriber']).or(mongoIdValidation),
     }).refine( data => data.password === data.rePassword, {
         message: "Passwords don't match",
         path: ["rePassword"], // path of error

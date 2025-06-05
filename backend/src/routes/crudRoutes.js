@@ -3,6 +3,7 @@ import { getItems, createItem, updateItem, deleteItem, getItemById, getConyectTy
 import { formValidation } from '../middlewares/formValidation.js'
 import passport from 'passport'
 
+
 const router = express.Router()
 
 // Route to get all contentTypes
@@ -18,7 +19,7 @@ router.get('/:contentType', getItems)
 router.get('/:contentType/:id', getItemById)
 
 // Route to create a new Item
-router.post('/:contentType', passport.authenticate('jwt', { session: false }), createItem)
+router.post('/:contentType', passport.authenticate('jwt', { session: false }), formValidation(), createItem)
 
 // Route to update a Item by ID
 router.put('/:contentType/:id', passport.authenticate('jwt', { session: false }), updateItem)

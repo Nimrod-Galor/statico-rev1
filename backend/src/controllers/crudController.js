@@ -100,15 +100,15 @@ export const getItemById = async (req, res) => {
 // Logic to create a new item in the database
 export const createItem = async (req, res) => {
     const { contentType } = req.params;
-    const data = req.body;
+    // const data = req.body;
+    console.log("create")
 
     // Check if the content type is valid
     if (!dbInterface[contentType]) {
         return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
     }
-
     try{
-        const newItem = await createRow(contentType, data);
+        const newItem = await createRow(contentType, req.parsedData);
     
         res.status(201).json({ status: "success", message: `${contentType} created`, data: newItem });
     }catch(err){

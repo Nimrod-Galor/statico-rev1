@@ -21,19 +21,24 @@ export const createUser = async (req, res) => {
             })
 
             userData.role = defaultRole.id
-        }else{
-            // get role id
-            const role = await readRow('role', {
-                select: {id: true},
-                where: {name: userData.role}
-            })
+        }
+        else{
+        //     // get role id
+        //     const role = await readRow('role', {
+        //         select: {id: true},
+        //         where: {name: userData.role}
+        //     })
 
-            if(!role){
-                // role not found
-                return res.status(400).json({success: 'failed', message: `role ${userData.role} does not exist.`})
-            }
+        //     if(!role){
+        //         // role not found
+        //         return res.status(400).json({success: 'failed', message: `role ${userData.role} does not exist.`})
+        //     }
             
-            userData.role = role.id
+        //     userData.role = role.id
+
+            userData.role = {
+                connect: {id: userData.role}
+            }
         }
 
         // Hash passowrd
@@ -73,6 +78,7 @@ export const updateUser = async (req, res) => {
     const {userId} = req.params
 
     // check if user exist
+    let userData = {}
     const user = await findUnique('user', {id: userId})
     
     if(!user){
@@ -80,44 +86,50 @@ export const updateUser = async (req, res) => {
     }
 
     if(req.parsedData.email != user.email){
+        userData.email = req.parsedData.email
+        // check if email already exist
+        const emailExist = await findUnique('user', {email: req.parsedData.email}, {id: true})
+        if(emailExist){
+            // email already exist
+            return res.status(400).json({status: 'failed', message: `Email ${req.parsedData.email} already exist.`})
+        }
         // email need update. update verified flag
-        req.parsedData.emailVerified = req.parsedData.emailVerified ? req.parsedData.emailVerified : false
+        userData.emailVerified = req.parsedData.emailVerified ? req.parsedData.emailVerified : false
     }
 
     if(req.parsedData.role != user.role){
         // update role
         // get role id
-        const role = await readRow('role', {
-            select: {id: true},
-            where: {name: req.parsedData.role}
-        })
+        // const role = await readRow('role', {
+        //     select: {id: true},
+        //     where: {name: req.parsedData.role}
+        // })
 
-        if(!role){
-            // role not found
-            return res.status(400).json({success: 'failed', message: `role ${userData.role} does not exist.`})
-        }
+        // if(!role){
+        //     // role not found
+        //     return res.status(400).json({success: 'failed', message: `role ${req.parsedData.role} does not exist.`})
+        // }
         
-        req.parsedData.role = {
-            connect: {id: role.id}
+        userData.role = {
+            connect: {id: req.parsedData.role}
         }
+
+        
     }
 
     
-    if(req.parsedData.password == ''){
-        delete req.parsedData.password
-        delete req.parsedData.rePassword
-    }else{
+    if(req.parsedData.password != ''){       
         // Hash passowrd
         const saltRounds = 10
         const salt = bcrypt.genSaltSync(saltRounds);
-        const hash = bcrypt.hashSync(userData.password, salt);
+        const hash = bcrypt.hashSync(req.parsedData.password, salt);
 
-        req.parsedData.password = hash
-        req.parsedData.salt = salt
+        userData.password = hash
+        userData.salt = salt
     }
 
-    //  Update data type
-    await updateRow('user', {id: userId}, req.parsedData)
+    // Update user object
+    await updateRow('user', {id: userId}, userData)
 
     // Send Success json
     res.json({ status: 'success', message: `user '${user.userName}' was updated successfuly` })  
