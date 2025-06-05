@@ -158,9 +158,9 @@ console.log('defaultValues: ', defaultValues)
           <button type="submit" disabled={isSubmitting} className="w-full p-2 mt-4 rounded-2xl bg-blue-600 text-white hover:cursor-pointer">
             {isSubmitting ? "Loading..." : operationType == 'edit' ? 'update' : 'create' }
           </button>
-          <Link to="/admin" className="w-full text-center p-2 mt-4 rounded-2xl bg-yellow-600 text-white hover:cursor-pointer">
+          <button type="button" onClick={() => navigate(-1)} className="w-full text-center p-2 mt-4 rounded-2xl bg-yellow-600 text-white hover:cursor-pointer">
             Cancel
-          </Link>
+          </button>
         </div>
       </form>
     </div>
