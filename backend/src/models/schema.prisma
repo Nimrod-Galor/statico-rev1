@@ -78,10 +78,20 @@ model Product {
   viewCount       Int             @default(0)
   author          User            @relation(fields: [authorId], references: [id])
   authorId        String          @db.ObjectId
-  imageUrl        String
+  files           File[]   // One-to-many relation
   comments        Comment[]
+  category        Category        @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   categoryId      String          @db.ObjectId
-  category        Category @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model File {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  filename  String
+  url       String
+  alt       String?
+  product   Product? @relation(fields: [productId], references: [id])
+  productId String?  @db.ObjectId
+  uploadedAt DateTime @default(now())
 }
 
 model Category {
@@ -90,8 +100,8 @@ model Category {
   description String
   slug        String            @unique
   parentId    String?           @db.ObjectId // optional for root categories
-  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  children    Category[] @relation("CategoryHierarchy")
+  parent      Category?         @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    Category[]        @relation("CategoryHierarchy")
   products    Product[]         @relation(fields: [], references: [])
 }
 

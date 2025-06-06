@@ -1,10 +1,10 @@
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { union, unknown, z } from 'zod'
 import { useQueries } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { getItems, updateItem, createItem } from '../api'
+import { getItems, updateItem, createItem, uploadFiles } from '../api'
 import PasswordInput from './PasswordInput'
 
 import type { UseQueryResult } from '@tanstack/react-query'
@@ -13,9 +13,9 @@ import type { DefaultValues } from 'react-hook-form';
 import type { FormField } from '../models/formSchemas'
 import type { FieldValues } from 'react-hook-form'
 
+import { useAuth } from '../context/AuthProvider'
 
-
-type DynamicFormProps<T> = {
+type DynamicFormProps<T extends object> = {
   formfieldsSchema: FormField[];
   validationSchema: any; 
   // ZodType<any, any, any>;
@@ -23,18 +23,22 @@ type DynamicFormProps<T> = {
 }
 
 // function DynamicForm<T extends {}>({ schema, defaultValues, operationType, onSubmit }: DynamicFormProps<T>) {
-function DynamicForm<T>({ formfieldsSchema, validationSchema, defaultValues }: DynamicFormProps<T>) {
+function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, defaultValues }: DynamicFormProps<T>) {
   const { contentType = 'role', operationType = 'create', contentId = '' } = useParams();
+  const auth = useAuth()
+  const navigate = useNavigate()
 
   type zodSchemaType = z.infer<typeof validationSchema>
 
   const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<zodSchemaType>({
     resolver: zodResolver(validationSchema),
-    defaultValues
+    defaultValues: {
+      ...defaultValues,
+      ...(formfieldsSchema.some(f => f.name === 'author') && {
+        author: operationType === 'create' ? auth.userId : (defaultValues && (defaultValues as any).author)
+      }),
+    }, // Set default author to 'nimo' for create operation only if 'author' field exists
   });
-
-console.log('defaultValues: ', defaultValues)
-  let navigate = useNavigate()
 
   // Identify all dynamic select fields
   const dynamicSelects = formfieldsSchema.filter((f) => f.type === 'select' && f.fetchFrom)
@@ -94,19 +98,28 @@ console.log('defaultValues: ', defaultValues)
             <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
             <PasswordInput {...register(field.name as any)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
           </>)
+      case 'hidden':
+        return(<input type="hidden" {...register(field.name as any)} />)
+      case 'file':
+        return(<>
+          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+          <input type="file" multiple {...register(field.name as any)} 
+          {...(field.fileFilter && { accept: field.fileFilter })}
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" multiple /> 
+        </>)
       default:
         return(<>
           <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
-          <input type={field.type} {...register(field.name as any)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+          <input type={field.type} {...register(field.name as any)}
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
         </>)
     }
   };
 
-  const onSubmit: SubmitHandler<T> = async (data) => {
-    // update select fields to match the expected format
+  // const onSubmit: SubmitHandler<T> = async (data) => {
+  const onSubmit: SubmitHandler<T> = async (data: zodSchemaType) => {
+    // update select fields to match the expected format. ID in value.
     dynamicSelects.forEach((field) => {
-      console.log('field.name: ', field.name)
-      console.log('data[field.name]: ', data[field.name as keyof T])
       if(data[field.name as keyof T] === 'None' || data[field.name as keyof T] === '' || data[field.name as keyof T] === undefined){
         //delete the field if it's empty
         delete data[field.name as keyof T];
@@ -117,22 +130,60 @@ console.log('defaultValues: ', defaultValues)
           data[field.name as keyof T] = option.id as any; // update to use id
         }
       }
-
-      // if (field.type === 'select' && field.fetchFrom) {
-      // }
     })
 
     try{
-        if(operationType == 'edit'){
-          console.log('data:', data)
-            await updateItem(contentType, contentId, data as DefaultValues<T>)
-            navigate(`/admin/${contentType}`)
-            toast.success(`${contentType} Updated.`)
-        }else{
-            await createItem(contentType, data as DefaultValues<T>)
-            navigate(`/admin/${contentType}`)
-            toast.success(`${contentType} Created.`)
-        }
+
+console.log('data: ', data)
+
+
+
+
+    // if ('files' in data && Array.isArray(data.files)) {
+    if (data.files?.length > 0) {
+      console.log("INside file upload")
+      const formData = new FormData();
+      // for (const file of (data as any).files as File[]) {
+      for (let i = 0; i < data.files.length; i++) {
+        console.log('file: ')
+        formData.append('files', data.files[i] as File);
+      }
+
+      const result = await uploadFiles(contentType, contentId, formData);
+
+      console.log('upload result: ', result)
+
+
+
+      // If the upload was successful, remove the files from the data object
+      if (result.status === 'success') {
+        delete data.files;
+      } else {
+        console.error('File upload failed:', result.message);
+        throw new Error(result.message || 'File upload failed');
+      }
+    }
+
+
+
+console.log('data after file upload: ', data)
+
+
+
+
+      let action = ''
+      if(operationType == 'edit'){
+        await updateItem(contentType, contentId, data as DefaultValues<T>)
+        action = 'Updated'
+      }else{
+        await createItem(contentType, data as DefaultValues<T>)
+        action = 'Created'
+      }
+
+
+
+      navigate(`/admin/${contentType}`)
+      toast.success(`${contentType} ${action}.`)
     }catch(err){
         setError("root", { message: (err as { message: string }).message });
     }

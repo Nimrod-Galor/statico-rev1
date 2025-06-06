@@ -2,6 +2,7 @@ import express from 'express'
 import morgan from 'morgan'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
+import fs from 'fs';
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -39,6 +40,12 @@ const corsOptions ={
 app.options('/', cors(corsOptions)) // include before other routes
 app.use(cors(corsOptions))
 
+// Serve static files from the "uploads" directory
+if (!fs.existsSync('uploads')){
+  fs.mkdirSync('uploads')
+}
+
+
 // Auth Routes
 app.use('/api/v1/auth/', authRoutes)
 
@@ -53,12 +60,16 @@ app.get('/admin/*splat', (req, res) => {
   res.sendFile(path.join(__dirname, '../../admin-client/dist', 'index.html'))
 });
 
+// Serve files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+
 // Serve front end static files
 app.use('/', express.static(path.join(__dirname, '../../frontend/dist')))
 
+// Catch-all route to serve the frontend app
 app.get('/*splat', (req, res) => {
   res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'))
-});
+})
 
 
 app.listen(PORT, () =>{

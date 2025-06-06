@@ -1,6 +1,9 @@
 import { findUnique, readRow, readRows, updateRow, createRow, deleteRow, deleteRows, countRows } from '../../db.js';
 import { dbInterface } from '../models/dbInterface.js';
 
+const PORT = process.env.PORT || 3000
+const BASE_URL = `http://localhost:${PORT}`;
+
 function smartConvert(value) {
     // if(isJsonObject(value)) return JSON.parse(value);
     if (value === 'true') return true;
@@ -107,6 +110,13 @@ export const createItem = async (req, res) => {
     if (!dbInterface[contentType]) {
         return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
     }
+    
+    if('constructur' in dbInterface[contentType]){
+        // If a constructor function is defined, use it to transform the request data
+        // response.map(dbInterface[contentType].destructur)
+        req.parsedData = dbInterface[contentType].constructur(req.parsedData);
+    }
+
     try{
         const newItem = await createRow(contentType, req.parsedData);
     
@@ -121,7 +131,7 @@ export const createItem = async (req, res) => {
 // Logic to update an item by ID in the database
 export const updateItem = async (req, res) => {
     const { contentType, id } = req.params;
-    const data = req.body;
+    // const data = req.body;
 
     
     // Check if the content type is valid
@@ -136,18 +146,19 @@ export const updateItem = async (req, res) => {
     
     // Check if the item exists
     try{
-        const item = await findUnique(contentType, {
-            id: id
-        });
+        const item = await findUnique(contentType, { id });
     
         if (!item) {
             return res.status(404).json({ status: "error", message: `${contentType} not found` });
         }
 
+        if('constructur' in dbInterface[contentType]){
+            // If a constructor function is defined, use it to transform the request data
+            req.parsedData = dbInterface[contentType].constructur(req.parsedData);
+        }
+
         // Update the item
-        const updatedItem = await updateRow(contentType, {
-            id: id
-        }, data);
+        const updatedItem = await updateRow(contentType, { id }, req.parsedData);
 
         res.status(200).json({ status: "success", message: `${contentType} updated`, data: updatedItem });
     }
@@ -228,5 +239,55 @@ export const getTotalPages = async (req, res) => {
     } catch (err) {
         console.log(err)
         res.status(500).json({ status: "error", message: `Error fetching count for '${contentType}'` })
+    }
+}
+
+export const uploadFiles = async (req, res) => {
+    const { contentType, id } = req.params;
+
+    // Check if the content type is valid
+    if (!dbInterface[contentType]) {
+        return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
+    }
+
+    // Check if the ID is valid
+    if (!id) {
+        return res.status(400).json({ status: "error", message: `Invalid ID: ${id}` });
+    }
+
+    // Check if the item exists
+    try {
+        const item = await findUnique(contentType, {
+            id: id
+        });
+
+        if (!item) {
+            return res.status(404).json({ status: "error", message: `${contentType} not found` });
+        }
+
+        // Handle file upload logic here (e.g., save files to disk or cloud storage)
+        const files = req.files
+
+        if (!files || files.length === 0) {
+            return res.status(400).json({ error: 'No files uploaded' })
+        }
+
+        
+        const storedFiles = await Promise.all(
+            files.map((file) => {
+                const fileUrl = `${BASE_URL}/uploads/${file.filename}`
+                return createRow('file',{
+                        filename: file.filename,
+                        url: fileUrl,
+                        productId: id,
+                    })
+            })
+        )
+
+        res.status(200).json({ status: "success", message: 'Files uploaded and linked to product', files: storedFiles })
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: "error", message: `Error uploading files for '${contentType}'` });
+        return;
     }
 }

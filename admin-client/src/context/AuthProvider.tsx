@@ -19,38 +19,42 @@ import type { InternalAxiosRequestConfig } from 'axios';
 type AuthContext = {
   authToken?: string | null;
   user?: UserInput | null;
+  userId?: string | null;
   loading: boolean;
   handleLogin: (data: LoginInput) => Promise<void>;
   handleLogout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContext | undefined>(undefined);
+const AuthContext = createContext<AuthContext | undefined>(undefined)
 
-type AuthProviderProps = PropsWithChildren;
+type AuthProviderProps = PropsWithChildren
 
 export default function AuthProvider({ children }: AuthProviderProps) {
 
-    const [user, setUser] = useState(null);
-    const [authToken, setAuthToken] = useState<string | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [user, setUser] = useState(null)
+    const [userId, setUserId] = useState<string | null>(null)
+    const [authToken, setAuthToken] = useState<string | null>(null)
+    const [loading, setLoading] = useState(true)
 
-    const navigate = useNavigate();
+    const navigate = useNavigate()
 
     useLayoutEffect(() => {
       console.log("useLayoutEffect")
       // refresh acces token on page reload
       const tryRefresh = async () => {
         try {
-          const res = await refreshToken(); // uses HttpOnly cookie
-          // setUser(res.user);
+          const res = await refreshToken() // uses HttpOnly cookie
+          setUser(res.userName)
+          setUserId(res.userId)
           setAuthToken(res.accessToken); // stored only in memory
           // navigate('/admin/')
         } catch (err) {
-          console.log("refresh token error", err);
-          // setUser(null);
-          setAuthToken(null);
+          console.log("refresh token error", err)
+          setUser(null)
+          setUserId(null)
+          setAuthToken(null)
         }finally {
-          setLoading(false);
+          setLoading(false)
         }
       }
       tryRefresh()
@@ -91,7 +95,8 @@ export default function AuthProvider({ children }: AuthProviderProps) {
         try {
           const response = await login(data)
           
-          setUser(response.user)
+          setUser(response.userName)
+          setUserId(response.userId)
           setAuthToken(response.accessToken)
 
           navigate("/admin/")
@@ -123,6 +128,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       value={{
         authToken,
         user,
+        userId,
         loading,
         handleLogin,
         handleLogout

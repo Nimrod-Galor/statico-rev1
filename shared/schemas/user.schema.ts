@@ -20,6 +20,8 @@ export const userSchema = z.object({
                     // .refine(pass => )
         userName: z.string()
             .min(3, "Username must be at least 3 characters long"),  // Required username
+        userId: mongoIdValidation
+            .optional(),  // Optional user ID, useful for editing existing users
         // role: z.string()
         //     .optional()
         //     .refine(async (role) => {

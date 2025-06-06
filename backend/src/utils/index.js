@@ -72,9 +72,9 @@ export async function createUser(data){
 }
 
 // Create JWT token and refresh Token
-export function generateToken(id){
+export function generateToken(role, userName, id){
     const accessToken = jwt.sign(
-        { id },
+        { role, userName, id },
         ACCESS_TOKEN_SECRET,
         { expiresIn: '15m' }
     )
@@ -83,9 +83,9 @@ export function generateToken(id){
 }
 
 // Create JWT refresh Token
-export function generateRefreshToken(id){
+export function generateRefreshToken(role, userName, id){
     const refreshToken = jwt.sign(
-        { id },
+        { role, userName, id },
         REFRESH_TOKEN_SECRET,
         { expiresIn: '7d' }
     )

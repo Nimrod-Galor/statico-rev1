@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'number' | 'textarea' | 'check' | 'url' | 'password' | 'select';
+export type FieldType = 'text' | 'number' | 'textarea' | 'check' | 'url' | 'password' | 'select' | 'file' | 'hidden'
 
 export type FormField = {
     name: string;
@@ -8,6 +8,7 @@ export type FormField = {
     fetchFrom?: string; // content type for select options data
     displayInList: boolean; // display item in List items page
     displayInForm: boolean; // display item in create/edit form page
+    fileFilter?: string; // file filter for file input
 }
 
 export type FormSchema = {
@@ -46,19 +47,21 @@ export const formSchemas: Record<string, FormSchema> = {
     },
     product: {
         fields: [
-            {name: 'createdAt', type: 'text', label:  'Date Created', displayInList: true, displayInForm: true},
+            {name: 'createdAt', type: 'text', label:  'Date Created', displayInList: true, displayInForm: false},
             {name: 'metatitle', type: 'text', label: 'Meta Title', displayInList: true, displayInForm: true},
             {name: 'metadescription', type: 'text', label: 'Meta Description', displayInList: true, displayInForm: true},
             {name: 'slug', type: 'text', label: 'Slug', displayInList: true, displayInForm: true},
             {name: 'title', type: 'text', label: 'Title', displayInList: true, displayInForm: true},
             {name: 'body', type: 'textarea', label: 'Body', displayInList: true, displayInForm: true},
-            {name: 'price', type: 'text', label: 'Price', displayInList: true, displayInForm: true},
-            {name: 'stock', type: 'text', label: 'Stock', displayInList: true, displayInForm: true},
-            {name: 'category', type: 'text', label: 'Category', displayInList: true, displayInForm: true},
+            {name: 'price', type: 'number', label: 'Price', displayInList: true, displayInForm: true},
+            {name: 'stock', type: 'number', label: 'Stock', displayInList: true, displayInForm: true},
+            {name: 'category', type: 'select', label: 'Category', displayInList: true, displayInForm: true, fetchFrom: 'category'},
             {name: 'publish', type: 'check', label: 'Publish', displayInList: true, displayInForm: true},
-            {name: 'viewCount', type: 'text', label: 'View Count', displayInList: true, displayInForm: true},
-            {name: 'imageUrl', type: 'text', label: 'Images', displayInList: true, displayInForm: true},
-            {name: 'comments', type: 'text', label: 'Comments', displayInList: true, displayInForm: true}
+            {name: 'viewCount', type: 'text', label: 'View Count', displayInList: true, displayInForm: false},
+            {name: 'files', type: 'file', label: 'Images', displayInList: false, displayInForm: true, fileFilter: 'image/*'},
+            {name: 'comments', type: 'text', label: 'Comments', displayInList: true, displayInForm: false},
+            {name: 'author', type: 'text', label: 'Author', displayInList: true, displayInForm: false},
+            {name: 'authorId', type: 'hidden', label: 'Author', displayInList: false, displayInForm: true}
         ]
     },
     category: {

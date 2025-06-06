@@ -75,6 +75,26 @@ export const deleteItem = async (contentType: string, id: string) => {
     }
 }
 
+// upload files
+export const uploadFiles = async (contentType: string, id: string, formData: FormData) => {
+    
+    try{
+        // const formData = new FormData();
+        // files.forEach(file => {
+        //     formData.append('files', file);
+        // });
+        const response = await axiosPrivate.post(`${BASEURL}/${contentType}/${id}/upload`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+        return response.data;
+    }catch(err: any){
+        const message = err.response?.data?.message || err.message || "Unknown error";
+        throw new Error(message);
+    }
+}
+
 // Login
 export const login = async (data: LoginInput) => {
     try{

@@ -60,7 +60,7 @@ export const dbInterface = {
             viewCount: true,
             author: true,
             authorId: true,
-            imageUrl: true,
+            files: true,
             comments: true,
             _count:{
                 select: {
@@ -71,9 +71,17 @@ export const dbInterface = {
         destructur: (product) => ({
             ...product,
             author: product.author.userName,
+            category: product.category.name,
             comments: product._count.comments,
             _count: undefined
         }),
+        constructur: (product) => ({
+            ...product,
+            category: { connect: { id: product.category } },
+            author: { connect: { id: product.authorId } },
+            authorId: undefined, // remove authorId if not needed
+            // files: product.files ? { connect: product.files.map(file => ({ id: file.id })) } : undefined
+        })
     },
     category: {
         select: {

@@ -48,11 +48,13 @@ export const loginController = (req, res, next) => {
             return res.status(401).json({ message: info.message })
         }
 
+        const { role, userName, id } = {...user, role: user.role.name}
+
         // Generate new refresh token
-        const refreshToken = generateRefreshToken(user.id)
+        const refreshToken = generateRefreshToken(role, userName, id)
 
         await updateRow('user', // contentType
-            { id: user.id }, // where
+            { id }, // where
             { refreshToken } // data
         )
 
@@ -63,12 +65,11 @@ export const loginController = (req, res, next) => {
             maxAge: 7 * 24 * 60 * 60 * 1000,
         });
 
+
         // Generate new access token
-        const accessToken = generateToken(user.id)
+        const accessToken = generateToken(role, userName, id)
 
-        const { role, userName } = {...user, role: user.role.name}
-
-        res.json({ status: 'success', role, userName, accessToken });
+        res.status(200).json({ status: 'success', role, userName, userId: id, accessToken });
             
     })(req, res, next)
 }
@@ -103,8 +104,13 @@ export function refreshJwtTokenController(req, res){
 
     try{
         const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET)
-        const accessToken = generateToken(decoded.id)
-        res.status(200).json({ accessToken })
+        const accessToken = generateToken( decoded.role, decoded.userName, decoded.id)
+
+        const { role, userName, id } = { ...decoded }
+
+        res.status(200).json({ status: 'success', role, userName, userId: id, accessToken });
+            
+        // res.status(200).json({ accessToken })
     }catch(err){
         console.log(err)
         return res.status(403).json({err});
