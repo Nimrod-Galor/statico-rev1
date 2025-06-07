@@ -1,5 +1,5 @@
 import express from 'express'
-import { getItems, createItem, updateItem, deleteItem, getItemById, getConyectTypes, getTotalPages, uploadFiles } from '../controllers/crudController.js'
+import { getItems, createItem, updateItem, deleteItem, getItemById, getConyectTypes, getTotalPages, uploadFiles, deleteFile } from '../controllers/crudController.js'
 import { formValidation } from '../middlewares/formValidation.js'
 import passport from 'passport'
 import multer from 'multer'
@@ -13,29 +13,31 @@ const upload = multer({ storage });
 
 const router = express.Router()
 
-// Route to get all contentTypes
+// Get all contentTypes
 router.get('/contentType', passport.authenticate('jwt', { session: false }), getConyectTypes)
 
 // Count total item pages for a contentType
 router.get('/:contentType/totalPages', getTotalPages)
 
-// Route to get all Items
+// Get all Items in a contentType
 router.get('/:contentType', getItems)
 
-// Route to get a Item by ID
+// Get a Item by ID
 router.get('/:contentType/:id', getItemById)
 
-// Route to upload files for a Item
+// Upload files for a Item
 router.post('/:contentType/:id/upload', passport.authenticate('jwt', { session: false }), upload.array('files', 10), uploadFiles)
 
-// Route to create a new Item
+// Delete files for a Item
+router.delete('/:contentType/files/:fileId', passport.authenticate('jwt', { session: false }), deleteFile)
+
+// Create Item
 router.post('/:contentType', passport.authenticate('jwt', { session: false }), formValidation(), createItem)
 
-// Route to update a Item by ID
+// Update a Item by ID
 router.put('/:contentType/:id', passport.authenticate('jwt', { session: false }), formValidation(), updateItem)
 
-
-// Route to delete a Item by ID
+// Delete a Item by ID
 router.delete('/:contentType/:id', passport.authenticate('jwt', { session: false }), deleteItem)
 
 export default router

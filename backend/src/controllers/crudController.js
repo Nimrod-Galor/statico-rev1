@@ -1,3 +1,4 @@
+import fs from 'fs'
 import { findUnique, readRow, readRows, updateRow, createRow, deleteRow, deleteRows, countRows } from '../../db.js';
 import { dbInterface } from '../models/dbInterface.js';
 
@@ -131,8 +132,8 @@ export const createItem = async (req, res) => {
 // Logic to update an item by ID in the database
 export const updateItem = async (req, res) => {
     const { contentType, id } = req.params;
-    // const data = req.body;
-
+    
+console.log(req.parsedData)
     
     // Check if the content type is valid
     if (!dbInterface[contentType]) {
@@ -269,7 +270,7 @@ export const uploadFiles = async (req, res) => {
         const files = req.files
 
         if (!files || files.length === 0) {
-            return res.status(400).json({ error: 'No files uploaded' })
+            return res.status(204).json({ error: 'No files uploaded' })
         }
 
         
@@ -288,6 +289,39 @@ export const uploadFiles = async (req, res) => {
     } catch (err) {
         console.log(err);
         res.status(500).json({ status: "error", message: `Error uploading files for '${contentType}'` });
+        return;
+    }
+}
+
+export const deleteFile = async (req, res) => {
+    const { fileId } = req.params;
+
+    // Check if the file ID is valid
+    if (!fileId) {
+        return res.status(400).json({ status: "error", message: `Invalid file ID: ${fileId}` });
+    }
+
+    try {
+        // Check if the file exists
+        const file = await findUnique('file', { id: fileId });
+
+        if (!file) {
+            return res.status(404).json({ status: "error", message: `File not found` });
+        }
+
+        // Delete the file record from the database
+        await deleteRow('file', { id: fileId });
+
+        // Delete the actual file from disk or cloud storage here
+        const filePath = `./uploads/${file.filename}`
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath)
+        }
+
+        res.status(200).json({ status: "success", message: `File deleted successfully` });
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ status: "error", message: `Error deleting file` });
         return;
     }
 }

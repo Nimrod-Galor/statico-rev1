@@ -79,16 +79,23 @@ export const deleteItem = async (contentType: string, id: string) => {
 export const uploadFiles = async (contentType: string, id: string, formData: FormData) => {
     
     try{
-        // const formData = new FormData();
-        // files.forEach(file => {
-        //     formData.append('files', file);
-        // });
         const response = await axiosPrivate.post(`${BASEURL}/${contentType}/${id}/upload`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'
             }
         });
-        return response.data;
+        return response;
+    }catch(err: any){
+        const message = err.response?.data?.message || err.message || "Unknown error";
+        throw new Error(message);
+    }
+}
+
+// delete file
+export const deleteFile = async (contentType: string, fileId: string) => {
+    try{
+        const response = await axiosPrivate.delete(`${BASEURL}/${contentType}/files/${fileId}`)
+        return response.data
     }catch(err: any){
         const message = err.response?.data?.message || err.message || "Unknown error";
         throw new Error(message);

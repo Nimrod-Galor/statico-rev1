@@ -14,6 +14,9 @@ import type { FormField } from '../models/formSchemas'
 import type { FieldValues } from 'react-hook-form'
 
 import { useAuth } from '../context/AuthProvider'
+import PrintThumbnail from './PrintThumbnail'
+
+
 
 type DynamicFormProps<T extends object> = {
   formfieldsSchema: FormField[];
@@ -105,7 +108,8 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
           <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
           <input type="file" multiple {...register(field.name as any)} 
           {...(field.fileFilter && { accept: field.fileFilter })}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" multiple /> 
+          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+          {defaultValues && <PrintThumbnail files={defaultValues.files} />}
         </>)
       default:
         return(<>
@@ -114,8 +118,9 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
         </>)
     }
-  };
+  }
 
+  
   // const onSubmit: SubmitHandler<T> = async (data) => {
   const onSubmit: SubmitHandler<T> = async (data: zodSchemaType) => {
     // update select fields to match the expected format. ID in value.
@@ -134,42 +139,30 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
 
     try{
 
-console.log('data: ', data)
+      // if ('files' in data && Array.isArray(data.files)) {
+      if (data.files?.length > 0) {
+        console.log("INside file upload")
+        const formData = new FormData();
+        // for (const file of (data as any).files as File[]) {
+        for (let i = 0; i < data.files.length; i++) {
+          console.log('file: ')
+          formData.append('files', data.files[i] as File);
+        }
+
+        const result = await uploadFiles(contentType, contentId, formData);
+
+        console.log('upload result: ', result.data)
 
 
 
-
-    // if ('files' in data && Array.isArray(data.files)) {
-    if (data.files?.length > 0) {
-      console.log("INside file upload")
-      const formData = new FormData();
-      // for (const file of (data as any).files as File[]) {
-      for (let i = 0; i < data.files.length; i++) {
-        console.log('file: ')
-        formData.append('files', data.files[i] as File);
+        // If the upload was successful, remove the files from the data object
+        if (result.status !== 500) {
+          delete data.files;
+        } else {
+          console.error('File upload failed:', result.data.message);
+          throw new Error(result.data.message || 'File upload failed');
+        }
       }
-
-      const result = await uploadFiles(contentType, contentId, formData);
-
-      console.log('upload result: ', result)
-
-
-
-      // If the upload was successful, remove the files from the data object
-      if (result.status === 'success') {
-        delete data.files;
-      } else {
-        console.error('File upload failed:', result.message);
-        throw new Error(result.message || 'File upload failed');
-      }
-    }
-
-
-
-console.log('data after file upload: ', data)
-
-
-
 
       let action = ''
       if(operationType == 'edit'){

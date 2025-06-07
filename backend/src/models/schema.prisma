@@ -65,44 +65,44 @@ model Page {
 }
 
 model Product {
-  id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  createdAt       DateTime        @default(now())
+  id              String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt       DateTime  @default(now())
   metatitle       String?
   metadescription String?
-  slug            String?         @unique
+  slug            String?   @unique
   title           String
   body            String
-  price           Int
-  stock           Int             @default(0)
-  publish         Boolean         @default(false)
-  viewCount       Int             @default(0)
-  author          User            @relation(fields: [authorId], references: [id])
-  authorId        String          @db.ObjectId
-  files           File[]   // One-to-many relation
+  price           Float
+  stock           Int       @default(0)
+  publish         Boolean   @default(false)
+  viewCount       Int       @default(0)
+  author          User      @relation(fields: [authorId], references: [id])
+  authorId        String    @db.ObjectId
+  files           File[] // One-to-many relation
   comments        Comment[]
-  category        Category        @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  categoryId      String          @db.ObjectId
+  category        Category  @relation(fields: [categoryId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  categoryId      String    @db.ObjectId
 }
 
 model File {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  filename  String
-  url       String
-  alt       String?
-  product   Product? @relation(fields: [productId], references: [id])
-  productId String?  @db.ObjectId
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  filename   String
+  url        String
+  alt        String?
+  product    Product? @relation(fields: [productId], references: [id])
+  productId  String?  @db.ObjectId
   uploadedAt DateTime @default(now())
 }
 
 model Category {
-  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String
-  slug        String            @unique
-  parentId    String?           @db.ObjectId // optional for root categories
-  parent      Category?         @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  children    Category[]        @relation("CategoryHierarchy")
-  products    Product[]         @relation(fields: [], references: [])
+  slug        String     @unique
+  parentId    String?    @db.ObjectId // optional for root categories
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    Category[] @relation("CategoryHierarchy")
+  products    Product[]  @relation(fields: [], references: [])
 }
 
 model Comment {
