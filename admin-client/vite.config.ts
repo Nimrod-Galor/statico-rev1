@@ -4,15 +4,18 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(),tailwindcss()],
-  base: '/admin',
+  plugins: [react(), tailwindcss()],
+  base: '/admin/',
   server: {
     port: 5173,
     proxy: {
-      '/api' : {
+      '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,
-        // rewrite: (path) => path.replace(/^\/api/, '/api')
+      },
+      '/uploads': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
       }
     }
   },

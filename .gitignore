@@ -140,4 +140,5 @@ dist
 .pnp.*
 
 # file uploads
-uploads
+uploads/
+uploads/**

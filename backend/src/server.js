@@ -61,7 +61,15 @@ app.get('/admin/*splat', (req, res) => {
 });
 
 // Serve files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.get('/uploads/:filename', (req, res) => {
+  const filePath = path.join(__dirname, '../../uploads', req.params.filename);
+  if (fs.existsSync(filePath)) {
+    res.sendFile(filePath);
+  } else {
+    res.status(404).json({ message: 'File not found' });
+  }
+});
+
 
 // Serve front end static files
 app.use('/', express.static(path.join(__dirname, '../../frontend/dist')))
@@ -70,6 +78,17 @@ app.use('/', express.static(path.join(__dirname, '../../frontend/dist')))
 app.get('/*splat', (req, res) => {
   res.sendFile(path.join(__dirname, '../../frontend/dist', 'index.html'))
 })
+
+
+// 404 Error Handler
+app.use((req, res, next) => {
+  res.status(404).json({
+    url: req.originalUrl,
+    status: 'error',
+    message: 'Not Found'
+  });
+})
+
 
 
 app.listen(PORT, () =>{

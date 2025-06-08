@@ -7,6 +7,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { getItems, updateItem, createItem, uploadFiles } from '../api'
 import PasswordInput from './PasswordInput'
 
+import { ImageUploadField } from './ImageUploadField'
+import  { imageSchema } from '../../../shared/schemas/image.schema'
+import type { ImageFormData } from '../../../shared/schemas/image.schema'
+
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { SubmitHandler } from 'react-hook-form'
 import type { DefaultValues } from 'react-hook-form'; 
@@ -14,7 +18,7 @@ import type { FormField } from '../models/formSchemas'
 import type { FieldValues } from 'react-hook-form'
 
 import { useAuth } from '../context/AuthProvider'
-import PrintThumbnail from './PrintThumbnail'
+
 
 
 
@@ -27,21 +31,27 @@ type DynamicFormProps<T extends object> = {
 
 // function DynamicForm<T extends {}>({ schema, defaultValues, operationType, onSubmit }: DynamicFormProps<T>) {
 function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, defaultValues }: DynamicFormProps<T>) {
-  const { contentType = 'role', operationType = 'create', contentId = '' } = useParams();
+  let { contentType = 'role', operationType = 'create', contentId = '' } = useParams();
   const auth = useAuth()
   const navigate = useNavigate()
 
   type zodSchemaType = z.infer<typeof validationSchema>
 
-  const { register, handleSubmit, setError, formState: { errors, isSubmitting } } = useForm<zodSchemaType>({
+  const { control, register, handleSubmit, getValues, setValue, setError, formState: { errors, isSubmitting } } = useForm<zodSchemaType>({
     resolver: zodResolver(validationSchema),
     defaultValues: {
       ...defaultValues,
-      ...(formfieldsSchema.some(f => f.name === 'author') && {
-        author: operationType === 'create' ? auth.userId : (defaultValues && (defaultValues as any).author)
+      ...(formfieldsSchema.some(f => f.name === 'authorId') && {
+        authorId: operationType === (defaultValues && (defaultValues as any).authorId) || auth.userId
       }),
-    }, // Set default author to 'nimo' for create operation only if 'author' field exists
-  });
+    },
+  })
+
+  console.log("operationType: ", operationType)
+  console.log('DynamicForm defaultValues: ', defaultValues)
+  console.log('auth.userId: ', auth.userId)
+
+  const defaultImages = (defaultValues as { files?: ImageFormData['images'] })?.files || []
 
   // Identify all dynamic select fields
   const dynamicSelects = formfieldsSchema.filter((f) => f.type === 'select' && f.fetchFrom)
@@ -104,13 +114,17 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
       case 'hidden':
         return(<input type="hidden" {...register(field.name as any)} />)
       case 'file':
-        return(<>
-          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
-          <input type="file" multiple {...register(field.name as any)} 
-          {...(field.fileFilter && { accept: field.fileFilter })}
-          className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
-          {defaultValues && <PrintThumbnail files={defaultValues.files} />}
-        </>)
+        return(
+          <ImageUploadField
+            name="files"
+            control={control}
+            register={register}
+            getValues={getValues}
+            setValue={setValue}
+            errors={errors}
+            defaultImages={defaultImages}
+          />
+        )
       default:
         return(<>
           <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
@@ -123,6 +137,10 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
   
   // const onSubmit: SubmitHandler<T> = async (data) => {
   const onSubmit: SubmitHandler<T> = async (data: zodSchemaType) => {
+
+console.log('Form submitted with data: ', data)
+
+
     // update select fields to match the expected format. ID in value.
     dynamicSelects.forEach((field) => {
       if(data[field.name as keyof T] === 'None' || data[field.name as keyof T] === '' || data[field.name as keyof T] === undefined){
@@ -139,29 +157,22 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
 
     try{
 
-      // if ('files' in data && Array.isArray(data.files)) {
+      // if files are present, prepare FormData for file upload
+      const formData = new FormData();
       if (data.files?.length > 0) {
-        console.log("INside file upload")
-        const formData = new FormData();
-        // for (const file of (data as any).files as File[]) {
-        for (let i = 0; i < data.files.length; i++) {
-          console.log('file: ')
-          formData.append('files', data.files[i] as File);
-        }
-
-        const result = await uploadFiles(contentType, contentId, formData);
-
-        console.log('upload result: ', result.data)
-
-
-
-        // If the upload was successful, remove the files from the data object
-        if (result.status !== 500) {
-          delete data.files;
-        } else {
-          console.error('File upload failed:', result.data.message);
-          throw new Error(result.data.message || 'File upload failed');
-        }
+        
+        (data.files as ImageFormData['images']).forEach((item, index) => {
+          // Check if the item has a file and it's a valid File object ( new file)
+          if (item.file instanceof File && item.file.size > 0) {
+            // Append the file to the FormData object
+            formData.append(`newImages[${index}].file`, item.file)
+            formData.append(`newImages[${index}].alt`, item.alt || '')
+          }else{
+            formData.append(`existingImages[${index}].alt`, item.alt || '')
+            formData.append(`existingImages[${index}].id`, String(item.id))
+          }
+        })
+        delete data.files;
       }
 
       let action = ''
@@ -169,10 +180,24 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
         await updateItem(contentType, contentId, data as DefaultValues<T>)
         action = 'Updated'
       }else{
-        await createItem(contentType, data as DefaultValues<T>)
+        const newItem = await createItem(contentType, data as DefaultValues<T>)
+        const newContentId = newItem.data.id; // Get the newly created item's ID
         action = 'Created'
       }
 
+      if (formData.values()) {
+        const result = await uploadFiles(contentType, contentId, formData);
+  
+        console.log('upload result: ', result.data)
+
+        // If the upload was successful, remove the files from the data object
+        if (result.status !== 500) {
+        } else {
+          console.error('File upload failed:', result.data.message);
+          throw new Error(result.data.message || 'File upload failed');
+        }
+
+      }
 
 
       navigate(`/admin/${contentType}`)

@@ -2,7 +2,7 @@ import fs from 'fs'
 import { findUnique, readRow, readRows, updateRow, createRow, deleteRow, deleteRows, countRows } from '../../db.js';
 import { dbInterface } from '../models/dbInterface.js';
 
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 5173
 const BASE_URL = `http://localhost:${PORT}`;
 
 function smartConvert(value) {
@@ -31,6 +31,52 @@ function setFilters(contentType, filters){
     }
     return { where, orderBy }
 }
+
+
+
+// const uploadImages = async (files, productId) => {
+//     const storedFiles = await Promise.all(
+//         files.map((file) => {
+//             // Parse newImages
+//             const match = file.fieldname.match(/^newImages\[(\d+)\]\.file$/);
+//             if (!match){
+//                 return
+//             }
+            
+//             const index = match[1];
+//             const fileUrl = `${BASE_URL}/uploads/${file.filename}`
+//             const altKey = body[`newImages[${index}].alt`];
+//             return createRow('file',{
+//                 filename: file.filename,
+//                 url: fileUrl,
+//                 productId,
+//                 alt: altKey || '',
+//             })
+//         })
+//     )
+// }
+
+// const updateImageAlt = async (body) => {
+//     Object.keys(body).forEach( async (key) => {    
+//         // Parse existingImages
+//         const match = key.match(/^existingImages\[(\d+)\]\.alt$/)
+//         if (!match) return
+
+//         const index = match[1]
+//         const alt = body[`existingImages[${index}].alt`] || 'nimo'
+
+//         await updateRow('file', {
+//             id: body[`existingImages[${index}].id`]
+//         }, {
+//             alt: alt
+//         })
+//     })
+// }
+
+
+
+
+
 
 // Logic to fetch all items from the database
 export const getItems = async (req, res) => {
@@ -103,9 +149,8 @@ export const getItemById = async (req, res) => {
 
 // Logic to create a new item in the database
 export const createItem = async (req, res) => {
-    const { contentType } = req.params;
-    // const data = req.body;
-    console.log("create")
+    const { contentType } = req.params
+    let data = req.parsedData
 
     // Check if the content type is valid
     if (!dbInterface[contentType]) {
@@ -115,11 +160,11 @@ export const createItem = async (req, res) => {
     if('constructur' in dbInterface[contentType]){
         // If a constructor function is defined, use it to transform the request data
         // response.map(dbInterface[contentType].destructur)
-        req.parsedData = dbInterface[contentType].constructur(req.parsedData);
+        data = dbInterface[contentType].constructur(data);
     }
 
     try{
-        const newItem = await createRow(contentType, req.parsedData);
+        const newItem = await createRow(contentType, data);
     
         res.status(201).json({ status: "success", message: `${contentType} created`, data: newItem });
     }catch(err){
@@ -132,8 +177,8 @@ export const createItem = async (req, res) => {
 // Logic to update an item by ID in the database
 export const updateItem = async (req, res) => {
     const { contentType, id } = req.params;
-    
-console.log(req.parsedData)
+    let data = req.parsedData
+console.log(data)
     
     // Check if the content type is valid
     if (!dbInterface[contentType]) {
@@ -155,11 +200,11 @@ console.log(req.parsedData)
 
         if('constructur' in dbInterface[contentType]){
             // If a constructor function is defined, use it to transform the request data
-            req.parsedData = dbInterface[contentType].constructur(req.parsedData);
+            data = dbInterface[contentType].constructur(data);
         }
 
         // Update the item
-        const updatedItem = await updateRow(contentType, { id }, req.parsedData);
+        const updatedItem = await updateRow(contentType, { id }, data);
 
         res.status(200).json({ status: "success", message: `${contentType} updated`, data: updatedItem });
     }
@@ -246,6 +291,16 @@ export const getTotalPages = async (req, res) => {
 export const uploadFiles = async (req, res) => {
     const { contentType, id } = req.params;
 
+    const files = req.files
+    const body = req.body
+ 
+    console.log('body', body)
+
+    // Check if files are provided
+    // if (!files || files.length === 0) {
+    //     return res.status(204).json({ error: 'No files uploaded' })
+    // }
+
     // Check if the content type is valid
     if (!dbInterface[contentType]) {
         return res.status(400).json({ status: "error", message: `Invalid content type: ${contentType}` });
@@ -266,24 +321,42 @@ export const uploadFiles = async (req, res) => {
             return res.status(404).json({ status: "error", message: `${contentType} not found` });
         }
 
-        // Handle file upload logic here (e.g., save files to disk or cloud storage)
-        const files = req.files
-
-        if (!files || files.length === 0) {
-            return res.status(204).json({ error: 'No files uploaded' })
-        }
-
-        
+        // Parse newImages
         const storedFiles = await Promise.all(
             files.map((file) => {
+                const match = file.fieldname.match(/^newImages\[(\d+)\]\.file$/);
+                if (!match) return;
+                
+                const index = match[1];
                 const fileUrl = `${BASE_URL}/uploads/${file.filename}`
+                const altKey = body[`newImages[${index}].alt`];
                 return createRow('file',{
                         filename: file.filename,
                         url: fileUrl,
                         productId: id,
+                        alt: altKey || '',
                     })
             })
         )
+
+        // Parse existingImages
+        const updateImagesAlt = await Promise.all(
+            Object.keys(body).map( (key) => {
+                const match = key.match(/^existingImages\[(\d+)\]\.alt$/)
+                if (!match) return
+
+                const index = match[1]
+                const alt = body[`existingImages[${index}].alt`] || 'nimo'
+
+                return updateRow('file', {
+                    id: body[`existingImages[${index}].id`]
+                }, {
+                    alt: alt
+                })
+            })
+        )
+        
+        
 
         res.status(200).json({ status: "success", message: 'Files uploaded and linked to product', files: storedFiles })
     } catch (err) {

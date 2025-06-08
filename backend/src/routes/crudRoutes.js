@@ -26,7 +26,7 @@ router.get('/:contentType', getItems)
 router.get('/:contentType/:id', getItemById)
 
 // Upload files for a Item
-router.post('/:contentType/:id/upload', passport.authenticate('jwt', { session: false }), upload.array('files', 10), uploadFiles)
+router.post('/:contentType/:id/upload', passport.authenticate('jwt', { session: false }), upload.any(), uploadFiles)
 
 // Delete files for a Item
 router.delete('/:contentType/files/:fileId', passport.authenticate('jwt', { session: false }), deleteFile)
