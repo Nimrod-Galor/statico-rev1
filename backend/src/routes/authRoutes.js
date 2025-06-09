@@ -4,6 +4,7 @@ import { formValidation } from '../middlewares/formValidation.js'
 import { userSchema } from '../../../shared/schemas/user.schema.ts'
 import { emailSchema } from '../../../shared/schemas/email.schema.ts'
 import { passwordSchema } from '../../../shared/schemas/password.schema.ts'
+import { loginSchema } from '../../../shared/schemas/login.schema.ts'
 
 import { createUserController, logoutController, refreshJwtTokenController, loginController, verifyEmail, forgotPassword, resetPassword } from '../controllers/authController.js'
 
@@ -14,7 +15,7 @@ const router = express.Router()
 router.post('/signup', formValidation(userSchema), createUserController)
 
 // Local login
-router.post('/login', loginController)
+router.post('/login', formValidation(loginSchema), loginController)
 
 // Logout
 router.get('/logout', logoutController)

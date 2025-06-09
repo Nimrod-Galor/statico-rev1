@@ -39,6 +39,7 @@ export async function createUserController(req, res){
 
 // login
 export const loginController = (req, res, next) => {
+    const { rememberMe } = req.parsedData
     passport.authenticate('local', { session: false }, async (err, user, info) => {
         if (err){
             return res.status(500).json({ message: 'Server error.' })
@@ -58,12 +59,19 @@ export const loginController = (req, res, next) => {
             { refreshToken } // data
         )
 
-        res.cookie('refreshToken', refreshToken, {
+        // Cookie options
+        const cookieOptions = {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: process.env.NODE_ENV === 'production', // make sure HTTPS is used in production
             sameSite: 'Lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-        });
+        }
+
+        // Add duration only if rememberMe is true. otherwise it will be a session cookie
+        if (rememberMe) {
+            cookieOptions.maxAge = 30 * 24 * 60 * 60 * 1000 // 30 days
+        }
+
+        res.cookie('refreshToken', refreshToken, cookieOptions)
 
 
         // Generate new access token

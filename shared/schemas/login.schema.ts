@@ -1,6 +1,6 @@
 import {z} from 'zod'
 
-import { passwordValidation } from './helper'
+import { passwordValidation } from './helper.ts'
 
 export const loginSchema = z.object({
     email: z.string().email("Invalid email address"),
