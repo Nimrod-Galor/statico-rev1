@@ -120,7 +120,7 @@ export const login = async (data: LoginInput) => {
 // Logout
 export const logout = async () => {
     try{
-        const response = await axios.get(`${BASEURL}/auth/logout`)
+        const response = await axiosPrivate.get(`${BASEURL}/auth/logout`, { withCredentials: true})
         return response.status
     }catch (err: any){
         const message = err.response?.data?.message || err.message || "Unknown error";

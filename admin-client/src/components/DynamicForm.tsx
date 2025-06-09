@@ -1,16 +1,15 @@
 import { useForm } from 'react-hook-form'
-import { union, unknown, z } from 'zod'
+import { z } from 'zod'
 import { useQueries } from '@tanstack/react-query'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getItems, updateItem, createItem, uploadFiles } from '../api'
 import PasswordInput from './PasswordInput'
 
 import { ImageUploadField } from './ImageUploadField'
-import  { imageSchema } from '../../../shared/schemas/image.schema'
-import type { ImageFormData } from '../../../shared/schemas/image.schema'
 
+import type { ImageFormData } from '../../../shared/schemas/image.schema'
 import type { UseQueryResult } from '@tanstack/react-query'
 import type { SubmitHandler } from 'react-hook-form'
 import type { DefaultValues } from 'react-hook-form'; 
@@ -18,9 +17,6 @@ import type { FormField } from '../models/formSchemas'
 import type { FieldValues } from 'react-hook-form'
 
 import { useAuth } from '../context/AuthProvider'
-
-
-
 
 type DynamicFormProps<T extends object> = {
   formfieldsSchema: FormField[];
@@ -47,10 +43,7 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
     },
   })
 
-  console.log("operationType: ", operationType)
-  console.log('DynamicForm defaultValues: ', defaultValues)
-  console.log('auth.userId: ', auth.userId)
-
+  // If defaultValues is not provided, use an empty object
   const defaultImages = (defaultValues as { files?: ImageFormData['images'] })?.files || []
 
   // Identify all dynamic select fields
@@ -75,12 +68,14 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
     )
   }
 
+  // Function to get options for a select field
   const getSelectOptions = (fieldName: string): { id: string; name: string }[] => {
     const index = dynamicSelects.findIndex((f) => f.name === fieldName)
     const result: UseQueryResult<any, any> = queryResults[index]
     return result?.data.data || []
   };
 
+  // Render each field based on its type
   const renderField = (field: FormField) => {
     switch (field.type) {
       case 'textarea':
@@ -135,11 +130,7 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
   }
 
   
-  // const onSubmit: SubmitHandler<T> = async (data) => {
   const onSubmit: SubmitHandler<T> = async (data: zodSchemaType) => {
-
-console.log('Form submitted with data: ', data)
-
 
     // update select fields to match the expected format. ID in value.
     dynamicSelects.forEach((field) => {
@@ -156,7 +147,6 @@ console.log('Form submitted with data: ', data)
     })
 
     try{
-
       // if files are present, prepare FormData for file upload
       const formData = new FormData();
       if (data.files?.length > 0) {
@@ -172,8 +162,8 @@ console.log('Form submitted with data: ', data)
             formData.append(`existingImages[${index}].id`, String(item.id))
           }
         })
-        delete data.files;
       }
+      delete data.files
 
       let action = ''
       if(operationType == 'edit'){
@@ -181,7 +171,7 @@ console.log('Form submitted with data: ', data)
         action = 'Updated'
       }else{
         const newItem = await createItem(contentType, data as DefaultValues<T>)
-        const newContentId = newItem.data.id; // Get the newly created item's ID
+        contentId = newItem.data.id; // Get the newly created item's ID
         action = 'Created'
       }
 

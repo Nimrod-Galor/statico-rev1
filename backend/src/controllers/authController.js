@@ -78,6 +78,7 @@ export const loginController = (req, res, next) => {
 // Logout
 export async function logoutController (req, res){
     const token = req.cookies.refreshToken
+
     if (!token){
         return res.sendStatus(204)
     }
@@ -90,7 +91,7 @@ export async function logoutController (req, res){
         );
     } catch {}
 
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken')
     res.sendStatus(204);
 }
 

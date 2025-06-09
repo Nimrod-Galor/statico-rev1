@@ -1,20 +1,14 @@
-import {
-  createContext,
-  useContext,
-  useLayoutEffect,
-  useState,
-} from 'react';
-import { useNavigate } from 'react-router-dom';
+import { createContext, useContext, useLayoutEffect, useState } from 'react'
+import { useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { axiosPrivate, login, logout, refreshToken } from '../api/index.ts'
 
-
-import { axiosPrivate, login, logout, refreshToken } from '../api/index.ts';
-// import type { User, LoginType } from '../types/index.ts';
-
-import type { UserInput } from '../../../shared/schemas/user.schema.ts';
-import type { LoginInput } from '../../../shared/schemas/login.schema.ts';
+import type { UserInput } from '../../../shared/schemas/user.schema.ts'
+import type { LoginInput } from '../../../shared/schemas/login.schema.ts'
 
 import type {PropsWithChildren} from 'react'
 import type { InternalAxiosRequestConfig } from 'axios';
+import { set } from 'react-hook-form';
 
 type AuthContext = {
   authToken?: string | null;
@@ -30,7 +24,7 @@ const AuthContext = createContext<AuthContext | undefined>(undefined)
 type AuthProviderProps = PropsWithChildren
 
 export default function AuthProvider({ children }: AuthProviderProps) {
-
+    const authTokenRef = useRef<string | null>(null)
     const [user, setUser] = useState(null)
     const [userId, setUserId] = useState<string | null>(null)
     const [authToken, setAuthToken] = useState<string | null>(null)
@@ -43,16 +37,18 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       // refresh acces token on page reload
       const tryRefresh = async () => {
         try {
-          const res = await refreshToken() // uses HttpOnly cookie
-          setUser(res.userName)
-          setUserId(res.userId)
-          setAuthToken(res.accessToken); // stored only in memory
+          const response = await refreshToken() // uses HttpOnly cookie
+          setUser(response.userName)
+          setUserId(response.userId)
+          setAuthToken(response.accessToken); // stored only in memory
+          authTokenRef.current = response.accessToken
           // navigate('/admin/')
         } catch (err) {
           console.log("refresh token error", err)
           setUser(null)
           setUserId(null)
           setAuthToken(null)
+          authTokenRef.current = null
         }finally {
           setLoading(false)
         }
@@ -66,7 +62,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       const requestIntercept = axiosPrivate.interceptors.request.use((config: InternalAxiosRequestConfig) => {
         // Ensure _retry property exists for later use in response interceptor
         (config as any)._retry = (config as any)._retry ?? false
-        config.headers['Authorization'] =  !(config as any)._retry && authToken ? `Bearer ${authToken}` : config.headers['Authorization']
+        config.headers['Authorization'] =  !(config as any)._retry && authToken ? `Bearer ${authTokenRef.current}` : config.headers['Authorization']
         return config
       })
 
@@ -74,20 +70,22 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           response => response,
           async (error) => {
               const prevRequest = error?.config;
-              if (error?.response?.status === 403 && !prevRequest?.sent) {
-                  prevRequest.sent = true;
-                  const newAccessToken = await refreshToken();
-                  prevRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-                  return axiosPrivate(prevRequest);
+              if (error?.response?.status === 401 && !prevRequest?.sent) {
+                  prevRequest.sent = true
+                  const response = await refreshToken()
+                  setAuthToken(response.accessToken)
+                  authTokenRef.current = response.accessToken
+                  prevRequest.headers['Authorization'] = `Bearer ${response.accessToken}`
+                  return axiosPrivate(prevRequest)
               }
-              return Promise.reject(error);
+              return Promise.reject(error)
           }
       );
 
       return () => {
         console.log("unmount")
-          axiosPrivate.interceptors.request.eject(requestIntercept);
-          axiosPrivate.interceptors.response.eject(responseIntercept);
+          axiosPrivate.interceptors.request.eject(requestIntercept)
+          axiosPrivate.interceptors.response.eject(responseIntercept)
       }
     }, [authToken])
 
@@ -98,6 +96,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
           setUser(response.userName)
           setUserId(response.userId)
           setAuthToken(response.accessToken)
+          authTokenRef.current = response.accessToken
 
           navigate("/admin/")
           return Promise.resolve()
@@ -114,9 +113,10 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             if(response != 204){
                 throw new Error('logout error')
             }
-            setUser(null);
-            setAuthToken('');
-            navigate("/login");
+            setUser(null)
+            setAuthToken('')
+            authTokenRef.current = ''
+            navigate("/login")
         }catch (err) {
             console.error(err);
         }

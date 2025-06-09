@@ -20,9 +20,11 @@ export const createUser = async (req, res) => {
                 where: {default: true}
             })
 
-            userData.role = defaultRole.id
+            userData.role = {
+                connect: { id: defaultRole.id}
+            }
         }
-        else{
+        // else{
         //     // get role id
         //     const role = await readRow('role', {
         //         select: {id: true},
@@ -36,10 +38,10 @@ export const createUser = async (req, res) => {
             
         //     userData.role = role.id
 
-            userData.role = {
-                connect: {id: userData.role}
-            }
-        }
+            // userData.role = {
+            //     connect: {id: userData.role}
+            // }
+        // }
 
         // Hash passowrd
         const saltRounds = 10
@@ -70,7 +72,8 @@ export const createUser = async (req, res) => {
         // }
         
     }catch(errorMsg){
-        res.json( { action: 'create User', status: 'failed', message: errorMsg.message })
+        console.error("Error creating user:", errorMsg)
+        res.json( { status: 'failed', message: errorMsg.message })
     }
 }
 

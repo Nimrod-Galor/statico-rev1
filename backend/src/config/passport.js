@@ -48,6 +48,9 @@ passport.use(new JwtStrategy({
     }, async (payload, done) => {
         try {
             const user = await findUnique('user', { id:payload.id }, {id: true })
+            
+console.log("JWT Strategy - User found:", user)
+
             return done(null, user || false)
         } catch (err) {
             return done(err, false)
