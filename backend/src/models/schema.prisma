@@ -19,11 +19,12 @@ datasource db {
 }
 
 model Role {
-  id          String  @id @default(auto()) @map("_id") @db.ObjectId
-  name        String  @unique @default("subscriber")
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String   @unique @default("subscriber")
   description String
-  default     Boolean @default(false)
-  User        User[]
+  default     Boolean  @default(false)
+  users       User[]   @relation(fields: [usersIDs], references: [id])
+  usersIDs    String[] @db.ObjectId
 }
 
 model User {
@@ -33,8 +34,8 @@ model User {
   password                 String?
   salt                     String?
   userName                 String?
-  role                     Role              @relation(fields: [roleId], references: [id])
-  roleId                   String            @db.ObjectId
+  roles                    Role[]            @relation(fields: [rolesIDs], references: [id])
+  rolesIDs                 String[]          @db.ObjectId
   products                 Product[]
   comments                 Comment[]
   refreshToken             String?

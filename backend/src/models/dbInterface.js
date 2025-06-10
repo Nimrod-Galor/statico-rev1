@@ -13,8 +13,8 @@ export const dbInterface = {
             createdAt: true,
             email: true,
             userName: true,
-            role: true,
-            roleId: true,
+            roles: true,
+            rolesIDs: true,
             emailVerified: true,
             _count: {
                 select: { 
@@ -27,8 +27,8 @@ export const dbInterface = {
             ...user,
             posts: user._count.posts,
             comments: user._count.comments,
-            role: user.role.name,
-            roleId: user.role.id,
+            roles: user.roles.name,
+            rolesIDs: user.roles.id,
             _count: undefined // optionally remove the original _count field
         })
     },

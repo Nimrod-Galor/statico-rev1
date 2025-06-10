@@ -3,9 +3,7 @@ import { mongoIdValidation } from './helper.ts'
 
 export const roleSchema = z.object({
     // id: mongoIdValidation.optional(),
-    name: z.string()
-        .min(3, "Role must be at least 3 characters long")
-        .optional(),
+    name: z.enum(['admin', 'author', 'contributor', 'editor', 'subscriber']),
     description: z.string()
         .min(3, "Description must be at least 3 characters long")
         .optional()

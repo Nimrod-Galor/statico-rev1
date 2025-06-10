@@ -8,7 +8,7 @@ const REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET
 
 /** Create User */
 export async function createUser(data){
-    let {email, userName, password, role, facebookId, googleId} = {...data}
+    let {email, userName, password, roles, facebookId, googleId} = {...data}
 
     try{
         // check if user exist
@@ -22,14 +22,14 @@ export async function createUser(data){
         }
 
         // set user role if undefind
-        if(role == undefined){
+        if(roles == undefined){
             // no role selected, get default role
             const defaultRole = await readRow('role', {
                 select: {id: true},
                 where: {default: true}
             })
             
-            role = defaultRole.id
+            roles = defaultRole.id
         }
 
         // Hash passowrd
@@ -43,8 +43,8 @@ export async function createUser(data){
             userName,
             password : hashed,
             salt : salt.toString('hex'),
-            role : {
-                connect: {id: role}
+            roles : {
+                connect: {id: roles}
             },
             verificationToken : jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1h' }),
             verificationTokenExpires : verificationTokenExpires,
@@ -72,9 +72,9 @@ export async function createUser(data){
 }
 
 // Create JWT token and refresh Token
-export function generateToken(role, userName, id){
+export function generateToken(roles, userName, id){
     const accessToken = jwt.sign(
-        { role, userName, id },
+        { roles, userName, id },
         ACCESS_TOKEN_SECRET,
         { expiresIn: '15m' }
     )
@@ -83,9 +83,9 @@ export function generateToken(role, userName, id){
 }
 
 // Create JWT refresh Token
-export function generateRefreshToken(role, userName, id){
+export function generateRefreshToken(roles, userName, id){
     const refreshToken = jwt.sign(
-        { role, userName, id },
+        { roles, userName, id },
         REFRESH_TOKEN_SECRET,
         { expiresIn: '7d' }
     )

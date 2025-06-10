@@ -53,9 +53,9 @@ const rolesCreated = await Promise.all(rolesPromise)
 console.log("Create Admin user.")
 const adminData = {
     email: 'admin@admin.com',
-    password: 'admin1',
+    password: 'Admin12!',
     userName: 'Admin',
-    role: rolesCreated[4].id
+    roles: rolesCreated[4].id // Assigning the admin role
 }
 
 await createUser(adminData)

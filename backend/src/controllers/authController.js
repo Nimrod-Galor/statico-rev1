@@ -15,7 +15,7 @@ export async function createUserController(req, res){
             userName: req.parsedData.userName,
             email: req.parsedData.email,
             password: req.parsedData.password,
-            role: req.parsedData.role,
+            roles: req.parsedData.roles,
             // emailVerified: req.parsedData.verifyEmail
         }
 
@@ -49,10 +49,10 @@ export const loginController = (req, res, next) => {
             return res.status(401).json({ message: info.message })
         }
 
-        const { role, userName, id } = {...user, role: user.role.name}
+        const { roles, userName, id } = {...user, roles: user.roles.name}
 
         // Generate new refresh token
-        const refreshToken = generateRefreshToken(role, userName, id)
+        const refreshToken = generateRefreshToken(roles, userName, id)
 
         await updateRow('user', // contentType
             { id }, // where
@@ -75,9 +75,9 @@ export const loginController = (req, res, next) => {
 
 
         // Generate new access token
-        const accessToken = generateToken(role, userName, id)
+        const accessToken = generateToken(roles, userName, id)
 
-        res.status(200).json({ status: 'success', role, userName, userId: id, accessToken });
+        res.status(200).json({ status: 'success', roles, userName, userId: id, accessToken });
             
     })(req, res, next)
 }
@@ -113,11 +113,11 @@ export function refreshJwtTokenController(req, res){
 
     try{
         const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET)
-        const accessToken = generateToken( decoded.role, decoded.userName, decoded.id)
+        const accessToken = generateToken( decoded.roles, decoded.userName, decoded.id)
 
-        const { role, userName, id } = { ...decoded }
+        const { roles, userName, id } = { ...decoded }
 
-        res.status(200).json({ status: 'success', role, userName, userId: id, accessToken });
+        res.status(200).json({ status: 'success', roles, userName, userId: id, accessToken });
             
         // res.status(200).json({ accessToken })
     }catch(err){

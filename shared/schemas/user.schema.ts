@@ -1,11 +1,11 @@
 import { z } from "zod";
-
 import { mongoIdValidation, passwordValidation } from "./helper.ts";
 
+import { roleSchema as Role } from "./role.schema.ts"
 
 export const userSchema = z.object({
-        id: mongoIdValidation
-            .optional(),  // Optional MongoDB ID
+        id: mongoIdValidation,
+            // .optional(),  // Optional MongoDB ID
         email: z.string()
             .email("Invalid email address"),  // Required email
             // .refine(async (email, id) => {
@@ -32,7 +32,7 @@ export const userSchema = z.object({
         //         }, {
         //         message: "Invalid role, does not exist in the database",
         //     }),
-        role: z.enum(['admin', 'author', 'contributor', 'editor', 'subscriber']).or(mongoIdValidation),
+        roles: Role.or(mongoIdValidation).array().min(1, "At least one role is required"),  // Required roles, can be an array of Role objects or MongoDB IDs
     }).refine( data => data.password === data.rePassword, {
         message: "Passwords don't match",
         path: ["rePassword"], // path of error
@@ -41,8 +41,8 @@ export const userSchema = z.object({
 export type UserInput = z.infer<typeof userSchema>
 
 export const userEditSchema = z.object({
-        id: mongoIdValidation
-            .optional(),  // Optional MongoDB ID
+        id: mongoIdValidation,
+            // .optional(),  // Optional MongoDB ID
         email: z.string()
             .email("Invalid email address"),
         emailVerified: z.boolean()
@@ -52,7 +52,7 @@ export const userEditSchema = z.object({
                     // .refine(pass => )
         userName: z.string()
             .min(3, "Username must be at least 3 characters long"),  // Required username
-        role: z.enum(['admin', 'author', 'contributor', 'editor', 'subscriber']).or(mongoIdValidation),
+        roles: Role.or(mongoIdValidation).array().min(1, "At least one role is required"),  // Required roles, can be an array of Role objects or MongoDB IDs,
     }).refine( data => data.password === data.rePassword, {
         message: "Passwords don't match",
         path: ["rePassword"], // path of error

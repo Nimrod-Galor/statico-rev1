@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { findUnique, readRow, readRows, updateRow, createRow, deleteRow, deleteRows, countRows } from '../../db.js';
 import { dbInterface } from '../models/dbInterface.js';
+import { hasPermission } from '../../../shared/permission/auth-abac.ts'
 
 const PORT = process.env.PORT || 5173
 const BASE_URL = `http://localhost:${PORT}`;
@@ -33,52 +34,7 @@ function setFilters(contentType, filters){
 }
 
 
-
-// const uploadImages = async (files, productId) => {
-//     const storedFiles = await Promise.all(
-//         files.map((file) => {
-//             // Parse newImages
-//             const match = file.fieldname.match(/^newImages\[(\d+)\]\.file$/);
-//             if (!match){
-//                 return
-//             }
-            
-//             const index = match[1];
-//             const fileUrl = `${BASE_URL}/uploads/${file.filename}`
-//             const altKey = body[`newImages[${index}].alt`];
-//             return createRow('file',{
-//                 filename: file.filename,
-//                 url: fileUrl,
-//                 productId,
-//                 alt: altKey || '',
-//             })
-//         })
-//     )
-// }
-
-// const updateImageAlt = async (body) => {
-//     Object.keys(body).forEach( async (key) => {    
-//         // Parse existingImages
-//         const match = key.match(/^existingImages\[(\d+)\]\.alt$/)
-//         if (!match) return
-
-//         const index = match[1]
-//         const alt = body[`existingImages[${index}].alt`] || 'nimo'
-
-//         await updateRow('file', {
-//             id: body[`existingImages[${index}].id`]
-//         }, {
-//             alt: alt
-//         })
-//     })
-// }
-
-
-
-
-
-
-// Logic to fetch all items from the database
+// Fetch all items of a specific content type from the database
 export const getItems = async (req, res) => {
     const { contentType } = req.params;
     const { ...filters } = req.query;

@@ -25,19 +25,19 @@ export const getContentType = async () => {
 
 // List Items
 export const getItems = async (contentType: string, page: string) => {
-    const response = await axios.get(`${BASEURL}/${contentType}?page=${page}`);
+    const response = await axiosPrivate.get(`${BASEURL}/${contentType}?page=${page}`);
     return response.data;
 }
 
 // get total number of pages for content type
 export const getTotalPages = async (contentType: string) => {
-    const response = await axios.get(`${BASEURL}/${contentType}/totalPages`)
+    const response = await axiosPrivate.get(`${BASEURL}/${contentType}/totalPages`)
     return response.data
 }
 
 // Get Item
 export const getItem = async (contentType: string, id: string | undefined) => {
-    const response = await axios.get(`${BASEURL}/${contentType}/${id}`)
+    const response = await axiosPrivate.get(`${BASEURL}/${contentType}/${id}`)
     return response.data;
 }
 
