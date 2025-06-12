@@ -13,31 +13,29 @@ type ContentFormSwitcherProps = {
     defaultValues?: DefaultValues<any>
 }
 
-const ContentFormSwitcher: React.FC<ContentFormSwitcherProps> = ({defaultValues}) => {
-    const { contentType = 'role', operationType = 'create'} = useParams()
-    // const formfieldsSchema = formSchemas[contentType].fields.filter(item => item.displayInForm)
-    const formfieldsSchema: FormField[] = (formSchemas as FormSchemas)[contentType].fields.filter((item: FormField) => item.displayInForm);
-    const validationSchema = operationType === 'edit' && contentType === 'user' ? schemaRegistry['userEdit'] : schemaRegistry[contentType as keyof typeof schemaRegistry]
-    
-
-    if (!formfieldsSchema){
-        return <div>Unknown content type</div>
-    }
-
-    interface FormSchemas {
+type FormSchemas = {
         [key: string]: {
             fields: FormField[];
         };
     }
 
-    interface SchemaRegistry {
-        [key: string]: z.ZodType<any, any>;
+const ContentFormSwitcher: React.FC<ContentFormSwitcherProps> = ({defaultValues}) => {
+    const { contentType = 'role', operationType = 'create'} = useParams()
+
+    const formfieldsSchema: FormField[] = (formSchemas as FormSchemas)[contentType].fields.filter((item: FormField) => item.displayInForm);
+    const schemaName = operationType === 'edit' && contentType === 'user' ? 'userUpdate' : contentType
+    console.log("schemaName: ", schemaName)
+    const validationSchema = schemaRegistry[schemaName as keyof typeof schemaRegistry] //[contentType as keyof typeof schemaRegistry]
+
+
+    if (!formfieldsSchema){
+        return <div>Unknown content type</div>
     }
 
     // Create a Set of field names to remove
     const keysToRemove = new Set(formfieldsSchema.map(field => field.name))
 
-    // Create new object without the keys to remove
+    // filter out the defaultValues based on the keysToRemove
     defaultValues = Object.fromEntries(
         Object.entries(defaultValues).filter(([key]) => keysToRemove.has(key))
     )

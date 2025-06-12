@@ -12,7 +12,6 @@ import './config/passport.js' // initializes all strategies
 // Routes
 import authRoutes from './routes/authRoutes.js'
 import crudRoutes from './routes/crudRoutes.js'
-import userRoutes from './routes/userRoutes.js'
 
 const app = express()
 
@@ -50,7 +49,6 @@ if (!fs.existsSync('uploads')){
 app.use('/api/v1/auth/', authRoutes)
 
 // API Routes
-app.use('/api/v1/user', userRoutes)
 app.use('/api/v1/', crudRoutes)
 
 // Serve Admin React frontend

@@ -1,4 +1,4 @@
-import type { UserEditInput as User } from '../schemas/user.schema.ts'
+import type { UserType as User } from '../schemas/user.schema.ts'
 import type { RoleInput as Role } from '../schemas/role.schema.ts'
 import type { ProductInput as Product } from '../schemas/product.schema.ts'
 import type { PostInput as Post } from '../schemas/post.schema.ts'

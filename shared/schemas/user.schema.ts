@@ -1,61 +1,38 @@
 import { z } from "zod";
 import { mongoIdValidation, passwordValidation } from "./helper.ts";
 
-import { roleSchema as Role } from "./role.schema.ts"
+const baseSchema = z.object({
+    email: z.string().email("Invalid email address"),  // Required email
+    emailVerified: z.boolean().optional(),  // Optional email verification
+    userName: z.string().min(3, "Username must be at least 3 characters long"),  // Required username
+    roles: z.enum(['admin', 'author', 'contributor', 'editor', 'subscriber']).or(mongoIdValidation).array().min(1, "At least one role is required"),  // Required roles, can be an array of role names or MongoDB IDs
+})
 
-export const userSchema = z.object({
-        id: mongoIdValidation,
-            // .optional(),  // Optional MongoDB ID
-        email: z.string()
-            .email("Invalid email address"),  // Required email
-            // .refine(async (email, id) => {
-            //     return await userExists(email, id)
-            // }, {
-            //     message: "An account with that email address already exists"
-            // }),
-        emailVerified: z.boolean()
-            .optional(),  // Optional email verification
-        password: passwordValidation,
-        rePassword: z.string(),
-                    // .refine(pass => )
-        userName: z.string()
-            .min(3, "Username must be at least 3 characters long"),  // Required username
-        userId: mongoIdValidation
-            .optional(),  // Optional user ID, useful for editing existing users
-        // role: z.string()
-        //     .optional()
-        //     .refine(async (role) => {
-        //             if (!role){
-        //                 return true  // Role is optional, so skip check if not provided
-        //             }
-        //             return await roleExistsInDb(role)// Validate against DB
-        //         }, {
-        //         message: "Invalid role, does not exist in the database",
-        //     }),
-        roles: Role.or(mongoIdValidation).array().min(1, "At least one role is required"),  // Required roles, can be an array of Role objects or MongoDB IDs
-    }).refine( data => data.password === data.rePassword, {
-        message: "Passwords don't match",
-        path: ["rePassword"], // path of error
-    })
+export const userSchema = baseSchema.extend({
+    password: passwordValidation,
+    rePassword: z.string(),
+}).refine( data => data.password === data.rePassword, {
+    message: "Passwords don't match",
+    path: ["rePassword"], // path of error
+})
 
-export type UserInput = z.infer<typeof userSchema>
+const optionalPasswordValidation = z.preprocess(
+    (val) => val === "" ? undefined : val, // treat "" as undefined
+    passwordValidation.optional() // apply password rules only if defined
+  );
 
-export const userEditSchema = z.object({
-        id: mongoIdValidation,
-            // .optional(),  // Optional MongoDB ID
-        email: z.string()
-            .email("Invalid email address"),
-        emailVerified: z.boolean()
-            .optional(),  // Optional email verification
-        password: passwordValidation.optional().or(z.literal('')),
-        rePassword: z.string(),
-                    // .refine(pass => )
-        userName: z.string()
-            .min(3, "Username must be at least 3 characters long"),  // Required username
-        roles: Role.or(mongoIdValidation).array().min(1, "At least one role is required"),  // Required roles, can be an array of Role objects or MongoDB IDs,
-    }).refine( data => data.password === data.rePassword, {
-        message: "Passwords don't match",
-        path: ["rePassword"], // path of error
-    })
+export const userUpdateSchema = baseSchema.partial().extend({
+    password: optionalPasswordValidation,
+    rePassword: z.string().optional(),
+}).refine(data => {
+    // Only check for match if a password is provided
+    if (data.password !== undefined) {
+        return data.password === data.rePassword;
+    }
+    return true;
+    }, {
+    message: "Passwords don't match",
+    path: ["rePassword"],
+})
 
-export type UserEditInput = z.infer<typeof userEditSchema>
+export type UserType = z.infer<typeof userSchema>

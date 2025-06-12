@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useQueries } from '@tanstack/react-query'
@@ -6,8 +7,11 @@ import toast from 'react-hot-toast'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { getItems, updateItem, createItem, uploadFiles } from '../api'
 import PasswordInput from './PasswordInput'
-
 import { ImageUploadField } from './ImageUploadField'
+
+
+
+
 
 import type { ImageFormData } from '../../../shared/schemas/image.schema'
 import type { UseQueryResult } from '@tanstack/react-query'
@@ -31,17 +35,30 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
   const auth = useAuth()
   const navigate = useNavigate()
 
-  type zodSchemaType = z.infer<typeof validationSchema>
+  type FormValues = z.infer<typeof validationSchema>
 
-  const { control, register, handleSubmit, getValues, setValue, setError, formState: { errors, isSubmitting } } = useForm<zodSchemaType>({
+  const { control, register, handleSubmit, getValues, setValue, setError, resetField, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(validationSchema),
-    defaultValues: {
+    defaultValues
+    : {
       ...defaultValues,
-      ...(formfieldsSchema.some(f => f.name === 'authorId') && {
-        authorId: operationType === (defaultValues && (defaultValues as any).authorId) || auth.userId
-      }),
+      ...(formfieldsSchema.some(f => f.name === 'authorId') && { authorId: operationType === (defaultValues && (defaultValues as any).authorId) || auth.userId }),
     },
   })
+
+  console.log("defaultValues: ", defaultValues)
+
+
+   useEffect(() => {
+  // // Reset the form select items with default values if provided
+    if( defaultValues) {
+      queryResults.forEach((result, index) => {
+        const field = dynamicSelects[index].name
+        resetField(field, { defaultValue: (defaultValues as Record<string, any>)[field] || [] })
+      })
+    }
+  }, [defaultValues, resetField])
+
 
   // If defaultValues is not provided, use an empty object
   const defaultImages = (defaultValues as { files?: ImageFormData['images'] })?.files || []
@@ -68,6 +85,8 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
     )
   }
 
+  
+
   // Function to get options for a select field
   const getSelectOptions = (fieldName: string): { id: string; name: string }[] => {
     const index = dynamicSelects.findIndex((f) => f.name === fieldName)
@@ -80,15 +99,15 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
     switch (field.type) {
       case 'textarea':
         return(<>
-          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
-          <textarea {...register(field.name as any)} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"  />
+          <label htmlFor={`field-${field.name}`} className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+          <textarea {...register(field.name as any)} id={`field-${field.name}`} className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"  />
         </>)
       case 'select':
         // const options = field.options || getSelectOptions(field.name);
         const options = field.options ? field.options.concat(getSelectOptions(field.name)) : getSelectOptions(field.name);
         return(<>
-          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
-          <select {...register(field.name as any)} id={field.name} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+          <label htmlFor={`field-${field.name}`} className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+          <select {...register(field.name as any)} id={`field-${field.name}`} multiple={field.multi} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
             {options.map((opt) => (
               <option key={opt.id} value={opt.name}>
                 {opt.name}
@@ -98,13 +117,13 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
         </>)
       case 'check':
         return(<div className="flex items-center mb-4">
-          <input type="checkbox" id={field.name} {...register(field.name as any)} className="float-left ms-2 text-sm font-medium text-gray-900 dark:text-gray-300" />
-          <label className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{field.label}</label>
+          <input type="checkbox"  id={`field-${field.name}`} {...register(field.name as any)} className="float-left ms-2 text-sm font-medium text-gray-900 dark:text-gray-300" />
+          <label htmlFor={`field-${field.name}`} className="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">{field.label}</label>
         </div>)
       case 'password':
         return(<>
-            <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
-            <PasswordInput {...register(field.name as any)} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
+            <label htmlFor={`field-${field.name}`} className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+            <PasswordInput {...register(field.name as any)} id={`field-${field.name}`} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
           </>)
       case 'hidden':
         return(<input type="hidden" {...register(field.name as any)} />)
@@ -122,27 +141,33 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
         )
       default:
         return(<>
-          <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
-          <input type={field.type} {...register(field.name as any)}
+          <label htmlFor={`field-${field.name}`} className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+          <input type={field.type} id={`field-${field.name}`} {...register(field.name as any)}
           className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" />
         </>)
     }
   }
 
   
-  const onSubmit: SubmitHandler<T> = async (data: zodSchemaType) => {
+  const onSubmit: SubmitHandler<T> = async (data: FormValues) => {
 
     // update select fields to match the expected format. ID in value.
     dynamicSelects.forEach((field) => {
       if(data[field.name as keyof T] === 'None' || data[field.name as keyof T] === '' || data[field.name as keyof T] === undefined){
         //delete the field if it's empty
-        delete data[field.name as keyof T];
+        delete data[field.name as keyof T]
       }else{
-        const selectedOption = data[field.name as keyof T] as string;
-        const option = getSelectOptions(field.name).find(opt => opt.name === selectedOption);
-        if (option) {
-          data[field.name as keyof T] = option.id as any; // update to use id
-        }
+        const selectedOptions = data[field.name as keyof T] as string[]
+        // reset to an array
+        data[field.name as keyof T] = new Array<string | number>()
+
+        // for each selected option, find the corresponding option ID in the fetched options
+        selectedOptions.forEach(selectedOption => {
+          const option = getSelectOptions(field.name).find(opt => opt.name === selectedOption)
+          if (option) {
+            data[field.name as keyof T].push(option.id as any) // update to use id
+          }
+        })
       }
     })
 
@@ -171,11 +196,12 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
         action = 'Updated'
       }else{
         const newItem = await createItem(contentType, data as DefaultValues<T>)
-        contentId = newItem.data.id; // Get the newly created item's ID
+        console.log("newItem: ", newItem)
+        contentId = newItem.userId; // Get the newly created item's ID
         action = 'Created'
       }
 
-      if (formData.values()) {
+      if (formData.values.length > 0) {
         const result = await uploadFiles(contentType, contentId, formData);
   
         console.log('upload result: ', result.data)
@@ -189,17 +215,21 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
 
       }
 
-
       navigate(`/admin/${contentType}`)
       toast.success(`${contentType} ${action}.`)
     }catch(err){
+      console.log("onsubmit error: ", err)
         setError("root", { message: (err as { message: string }).message });
     }
   }
 
+console.log("errors", errors)
+
   return (
     <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
       {errors.root && <div className="text-red-500 text-sm mt-1">{errors.root.message as string}</div>}
+
+
 
       <form className="space-y-2" onSubmit={handleSubmit(onSubmit)} noValidate>
         {formfieldsSchema.map((field) => (

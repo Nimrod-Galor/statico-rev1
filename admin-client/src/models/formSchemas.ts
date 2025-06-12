@@ -6,6 +6,7 @@ export type FormField = {
     label: string;
     options?: { id: string; name: string }[]; // For static select
     fetchFrom?: string; // content type for select options data
+    multi?: boolean; // for select, if multiple options can be selected
     displayInList: boolean; // display item in List items page
     displayInForm: boolean; // display item in create/edit form page
     fileFilter?: string; // file filter for file input
@@ -30,7 +31,7 @@ export const formSchemas: Record<string, FormSchema> = {
             {name: 'userName', type: 'text', label: 'User Name', displayInList: true, displayInForm: true},
             {name: 'password', type: 'password', label: 'Password', displayInList: false, displayInForm: true},
             {name: 'rePassword', type: 'password', label: 'Re Password', displayInList: false, displayInForm: true},
-            {name: 'role', type: 'select', label: 'Role', fetchFrom: 'role', displayInList: true, displayInForm: true},
+            {name: 'roles', type: 'select', multi: true, label: 'Role', fetchFrom: 'role', displayInList: true, displayInForm: true},
             {name: 'emailVerified', type: 'check', label: 'Email Verified', displayInList: true, displayInForm: false},
             {name: 'comments', type: 'text', label: 'Comments', displayInList: true, displayInForm: false}
         ]

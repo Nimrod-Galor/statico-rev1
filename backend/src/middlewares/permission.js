@@ -10,6 +10,6 @@ export const checkPermission = (action, Resource) => {
       return next()
     }
 
-    return res.status(403).json({ error: 'Forbidden: You do not have permission to perform this action.' })
+    return res.status(403).json({ status: 'error', message: `Forbidden: You do not have permission to ${action} ${resource}.` })
   }
 }

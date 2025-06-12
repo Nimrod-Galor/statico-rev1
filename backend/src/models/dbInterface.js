@@ -27,8 +27,7 @@ export const dbInterface = {
             ...user,
             posts: user._count.posts,
             comments: user._count.comments,
-            roles: user.roles.name,
-            rolesIDs: user.roles.id,
+            roles: user.roles.map(role => role.name),
             _count: undefined // optionally remove the original _count field
         })
     },

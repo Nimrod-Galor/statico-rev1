@@ -1,14 +1,24 @@
-import { schemaRegistry } from '../../../shared/schemas/index.ts' 
+import { schemaRegistry } from '../../../shared/schemas/index.ts'
 
 export function formValidation(validationSchema){
     // console.log("formValidation middleware called", validationSchema)
     return async function(req, res, next){
+        const { contentType, id } = req.params
+
+        if(contentType === 'user' && id){
+            // update user
+            validationSchema = schemaRegistry['userUpdate']
+        }
+
         if(validationSchema === undefined){
             console.log("no schema")
             const { contentType} = req.params
             // If no validation schema is provided, use the schema from the registry based on contentType
             validationSchema = schemaRegistry[contentType]
         }
+
+console.log("validation Schema", validationSchema)
+
         const parsed = await validationSchema.safeParseAsync(req.body)
 
         if (!parsed.success) {

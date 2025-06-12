@@ -89,11 +89,13 @@ export const getItemById = async (req, res) => {
             },
             select: dbInterface[contentType].select
         })
-
+        
         // destruct nested fields
         if('destructur' in dbInterface[contentType]){
             response = dbInterface[contentType].destructur(response)
         }
+        
+        console.log("response", response)
         
         res.status(200).json({ status: "success", data: response });
     }catch(err){
@@ -134,7 +136,7 @@ export const createItem = async (req, res) => {
 export const updateItem = async (req, res) => {
     const { contentType, id } = req.params;
     let data = req.parsedData
-console.log(data)
+
     
     // Check if the content type is valid
     if (!dbInterface[contentType]) {
@@ -146,8 +148,8 @@ console.log(data)
         return res.status(400).json({ status: "error", message: `Invalid ID: ${id}` });
     }
     
-    // Check if the item exists
     try{
+        // Check if the item exists
         const item = await findUnique(contentType, { id });
     
         if (!item) {
@@ -160,6 +162,7 @@ console.log(data)
         }
 
         // Update the item
+        console.log("data:", data.roles)
         const updatedItem = await updateRow(contentType, { id }, data);
 
         res.status(200).json({ status: "success", message: `${contentType} updated`, data: updatedItem });
