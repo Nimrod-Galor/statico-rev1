@@ -2,14 +2,14 @@ import {z} from 'zod'
 import { useParams } from 'react-router-dom'
 
 import { formSchemas } from '../models/formSchemas.ts'
-import { schemaRegistry } from '../../../shared/schemas/'
-import DynamicForm from './DynamicForm'
+import { schemaRegistry } from '../../../shared/schemas/index.ts'
+import DynamicForm from './DynamicForm.tsx'
 
 import type { DefaultValues } from 'react-hook-form';
 import type { FormField } from '../models/formSchemas.ts'
 
 
-type ContentFormSwitcherProps = {
+type FormSchemaProps = {
     defaultValues?: DefaultValues<any>
 }
 
@@ -19,7 +19,7 @@ type FormSchemas = {
         };
     }
 
-const ContentFormSwitcher: React.FC<ContentFormSwitcherProps> = ({defaultValues}) => {
+const FormSchema: React.FC<FormSchemaProps> = ({defaultValues}) => {
     const { contentType = 'role', operationType = 'create'} = useParams()
 
     const formfieldsSchema: FormField[] = (formSchemas as FormSchemas)[contentType].fields.filter((item: FormField) => item.displayInForm);
@@ -43,4 +43,4 @@ const ContentFormSwitcher: React.FC<ContentFormSwitcherProps> = ({defaultValues}
     return <DynamicForm formfieldsSchema={formfieldsSchema} validationSchema={validationSchema as unknown as z.ZodObject<any>} defaultValues={defaultValues} />
 }
 
-export default ContentFormSwitcher
+export default FormSchema

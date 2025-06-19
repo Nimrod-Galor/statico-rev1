@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from "@tanstack/react-query";
 import { getItem } from "../api";
 
-import ContentFormSwitcher from '../components/ContentFormSwitcher';
+import FormSchema from '../components/FormSchema';
 
 function EditPage() {
     const { contentType = 'role', operationType = 'create', contentId } = useParams();
@@ -31,15 +31,8 @@ function EditPage() {
     }
 
     // Form Page
-    return (
-        <div className="">
-            <div className="flex flex-col justify-center px-6 py-10 lg:px-8">
-                <h1 className="text-center text-2xl mt-7">{operationType === 'edit' ? 'Edit' : 'Create'} {contentType}</h1>
+    return(<FormSchema defaultValues={defaultValues} />)
 
-                <ContentFormSwitcher defaultValues={defaultValues} />
-            </div>
-        </div>
-    )
 }
 
 export default EditPage

@@ -36,6 +36,7 @@ model User {
   userName                 String?
   roles                    Role[]            @relation(fields: [rolesIDs], references: [id])
   rolesIDs                 String[]          @db.ObjectId
+  pages                    Page[]
   products                 Product[]
   comments                 Comment[]
   refreshToken             String?
@@ -61,7 +62,9 @@ model Page {
   metadescription String?
   slug            String? @unique
   title           String
-  body            String
+  body            Json
+  author          User    @relation(fields: [authorId], references: [id])
+  authorId        String  @db.ObjectId
   publish         Boolean @default(false)
 }
 

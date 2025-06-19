@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useState } from 'react'
+import { useForm, useWatch, FormProvider } from 'react-hook-form'
 import { z } from 'zod'
 import { useQueries } from '@tanstack/react-query'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { getItems, updateItem, createItem, uploadFiles } from '../api'
 import PasswordInput from './PasswordInput'
 import { ImageUploadField } from './ImageUploadField'
-
+import SlateEditor from './wysiwyg/SlateEditor'
 
 
 
@@ -19,6 +19,7 @@ import type { SubmitHandler } from 'react-hook-form'
 import type { DefaultValues } from 'react-hook-form'; 
 import type { FormField } from '../models/formSchemas'
 import type { FieldValues } from 'react-hook-form'
+
 
 import { useAuth } from '../context/AuthProvider'
 
@@ -37,14 +38,17 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
 
   type FormValues = z.infer<typeof validationSchema>
 
-  const { control, register, handleSubmit, getValues, setValue, setError, resetField, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const methods = useForm<FormValues>({
     resolver: zodResolver(validationSchema),
     defaultValues
     : {
       ...defaultValues,
       ...(formfieldsSchema.some(f => f.name === 'authorId') && { authorId: operationType === (defaultValues && (defaultValues as any).authorId) || auth.userId }),
+      ...(formfieldsSchema.some(f => f.name === 'body') && { body: (defaultValues && (defaultValues as any).body) || [ { type: "paragraph", children: [{ text: "" }] }  ] })
     },
   })
+
+  const { control, register, handleSubmit, getValues, setValue, setError, resetField, formState: { errors, isSubmitting } } = methods
 
   console.log("defaultValues: ", defaultValues)
 
@@ -97,6 +101,17 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
   // Render each field based on its type
   const renderField = (field: FormField) => {
     switch (field.type) {
+      case 'wysiwyg':
+        const slateValue = useWatch({ control, name: field.name })
+
+        return(<>
+          <label htmlFor={`field-${field.name}`} className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
+          <textarea id={`field-${field.name}`}
+            value={JSON.stringify(slateValue)}
+            onChange={(e) => { setValue(field.name, JSON.parse(e.currentTarget.value)) }} // update RHF & Slate
+            
+          className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"  />
+        </>)
       case 'textarea':
         return(<>
           <label htmlFor={`field-${field.name}`} className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{field.label}</label>
@@ -226,33 +241,40 @@ function DynamicForm<T extends object>({ formfieldsSchema, validationSchema, def
 console.log("errors", errors)
 
   return (
-    <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-      {errors.root && <div className="text-red-500 text-sm mt-1">{errors.root.message as string}</div>}
+    <FormProvider {...methods}>
+      <div className='flex flex-row'>
+        <div className="flex flex-col justify-center px-6 py-10 lg:px-8">
+          <h1 className="text-center text-2xl mt-7">{operationType === 'edit' ? 'Edit' : 'Create'} {contentType}</h1>
+          <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
+            {errors.root && <div className="text-red-500 text-sm mt-1">{errors.root.message as string}</div>}
 
+            <form className="space-y-2" onSubmit={handleSubmit(onSubmit)} noValidate>
+              {formfieldsSchema.map((field) => (
+                <div key={field.name} className='pt-2'>
+                  {renderField(field)}
+                  {errors[field.name as keyof FieldValues] && (
+                    <div className="text-red-500 mb-3">
+                      {errors[field.name as keyof T]?.message as string}
+                    </div>
+                  )}
+                </div>
+              ))}
 
-
-      <form className="space-y-2" onSubmit={handleSubmit(onSubmit)} noValidate>
-        {formfieldsSchema.map((field) => (
-          <div key={field.name} className='pt-2'>
-            {renderField(field)}
-            {errors[field.name as keyof FieldValues] && (
-              <div className="text-red-500 mb-3">
-                {errors[field.name as keyof T]?.message as string}
+              <div className='flex justify-evenly gap-2'>
+                <button type="submit" disabled={isSubmitting} className="w-full p-2 mt-4 rounded-2xl bg-blue-600 text-white hover:cursor-pointer">
+                  {isSubmitting ? "Loading..." : operationType == 'edit' ? 'update' : 'create' }
+                </button>
+                <button type="button" onClick={() => navigate(-1)} className="w-full text-center p-2 mt-4 rounded-2xl bg-yellow-600 text-white hover:cursor-pointer">
+                  Cancel
+                </button>
               </div>
-            )}
+            </form>
           </div>
-        ))}
-
-        <div className='flex justify-evenly gap-2'>
-          <button type="submit" disabled={isSubmitting} className="w-full p-2 mt-4 rounded-2xl bg-blue-600 text-white hover:cursor-pointer">
-            {isSubmitting ? "Loading..." : operationType == 'edit' ? 'update' : 'create' }
-          </button>
-          <button type="button" onClick={() => navigate(-1)} className="w-full text-center p-2 mt-4 rounded-2xl bg-yellow-600 text-white hover:cursor-pointer">
-            Cancel
-          </button>
         </div>
-      </form>
-    </div>
+
+        {contentType === 'page' && methods.getValues("body") &&  <div className='flex flex-1'><SlateEditor key="editor-visible" name='body' /></div>}
+      </div>
+    </FormProvider>
   )
 }
 

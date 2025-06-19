@@ -3,6 +3,15 @@ import validator from 'validator'
 
 import { mongoIdValidation, slugValidation } from './helper.ts'
 
+import { Node } from 'slate'
+
+const SlateNode = z.object({
+  type: z.string(),
+  children: z.array(z.object({ text: z.string() })),
+});
+
+const SlateContent = z.array(SlateNode).nonempty();
+
 export const pageSchema = z.object({
     id: mongoIdValidation.optional(), // MongoDB ID
     slug: slugValidation
@@ -16,13 +25,12 @@ export const pageSchema = z.object({
         .max(128, "Title must be at most 128 characters long")
         .transform((val) => validator.escape(val))  // Escape the comment input
         .optional(),
-    body: z.string()
-        .min(1, "Body can not be empty")
-        .transform((val) => validator.escape(val)) // Escape the comment input
-        .optional(),
+    body: SlateContent,
     publish: z.boolean()
         .optional(),
     authorId: mongoIdValidation,
 })
+
+
 
 export type PageInput = z.infer<typeof pageSchema>

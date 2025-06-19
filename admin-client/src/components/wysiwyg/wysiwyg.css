@@ -1,0 +1,12 @@
+.toolbar{
+    width: 100%;
+    background-color: #efefef;
+}
+.toolbar button{
+    border:1px solid #e1e1e1;
+    padding: 5px 10px;
+}
+
+.toolbar button:hover{
+    cursor: pointer;
+}
