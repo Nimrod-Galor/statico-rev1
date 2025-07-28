@@ -1,4 +1,4 @@
-export type FieldType = 'text' | 'number' | 'textarea' | 'wysiwyg' | 'check' | 'url' | 'password' | 'select' | 'file' | 'hidden'
+export type FieldType = 'text' | 'number' | 'textarea' | 'wysiwyg' | 'check' | 'url' | 'password' | 'select' | 'file' | 'hidden' | 'none'
 
 export type FormField = {
     name: string;
@@ -42,9 +42,10 @@ export const formSchemas: Record<string, FormSchema> = {
             {name: 'metadescription', type: 'text', label: 'Meta Description', displayInList: true, displayInForm: true},
             {name: 'slug', type: 'text', label: 'Slug', displayInList: true, displayInForm: true},
             {name: 'title', type: 'text', label: 'Title', displayInList: true, displayInForm: true},
-            {name: 'body', type: 'wysiwyg', label: 'Body', displayInList: true, displayInForm: true},
+            {name: 'body', type: 'wysiwyg', label: 'Body', displayInList: false, displayInForm: true},
             {name: 'publish', type: 'check', label: 'Publish', displayInList: true, displayInForm: true},
-            {name: 'authorId', type: 'hidden', label: 'Author', displayInList: false, displayInForm: true}
+            {name: 'authorId', type: 'hidden', label: 'Author', displayInList: false, displayInForm: true},
+            {name: 'author', type: 'none', label: 'Author', displayInList: true, displayInForm: false},
         ]
     },
     product: {

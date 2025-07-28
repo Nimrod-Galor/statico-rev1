@@ -16,6 +16,7 @@
     "@prisma/client": "^6.10.1",
     "@types/validator": "^13.15.1",
     "bcryptjs": "^3.0.2",
+    "bootstrap": "^5.3.7",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^5.1.0",
@@ -30,12 +31,14 @@
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
     "slate": "^0.117.0",
+    "slate-history": "^0.113.1",
     "validator": "^13.15.0",
-    "zod": "^3.25.28"
+    "zod": "^3.25.67"
   },
   "devDependencies": {
     "@types/express": "^5.0.3",
     "@types/passport": "^1.0.17",
-    "prisma": "^6.10.1"
+    "prisma": "^6.10.1",
+    "sass": "^1.89.2"
   }
 }

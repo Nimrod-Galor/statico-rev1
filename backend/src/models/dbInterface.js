@@ -39,8 +39,14 @@ export const dbInterface = {
             slug: true,
             title: true,
             body: true,
-            publish: true
-        }
+            publish: true,
+            author: true,
+            authorId: true,
+        },
+        destructur: (product) => ({
+            ...product,
+            author: product.author.userName
+        }),
     },
     product: {
         select: {

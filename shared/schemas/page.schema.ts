@@ -3,8 +3,6 @@ import validator from 'validator'
 
 import { mongoIdValidation, slugValidation } from './helper.ts'
 
-import { Node } from 'slate'
-
 const SlateNode = z.object({
   type: z.string(),
   children: z.array(z.object({ text: z.string() })),

@@ -115,7 +115,7 @@ export default function AuthProvider({ children }: AuthProviderProps) {
             }
             setUser(null)
             setAuthToken('')
-            authTokenRef.current = ''
+            authTokenRef.current = null
             navigate("/login")
         }catch (err) {
             console.error(err);
